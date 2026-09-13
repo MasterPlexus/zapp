@@ -14,7 +14,7 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 
 @Database(
 	entities = [PersistedMediathekShow::class, SearchQuery::class, ShowCollection::class],
-	version = 8,
+	version = 9,
 	autoMigrations = [],
 	exportSchema = true
 )
@@ -22,6 +22,16 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 abstract class Database : RoomDatabase() {
 
 	companion object {
+
+		/**
+		 * Invalidate the cached collection counters. Excluded shows are subtracted from the
+		 * total since the exclusion feature exists, so old values have to be recalculated.
+		 */
+		private val MIGRATION_8_9 = object : Migration(8, 9) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("UPDATE ShowCollection SET countUpdatedAt = NULL")
+			}
+		}
 
 		/**
 		 * Remember the newest known show of a collection to be able to detect new shows
@@ -130,7 +140,8 @@ abstract class Database : RoomDatabase() {
 					MIGRATION_4_5,
 					MIGRATION_5_6,
 					MIGRATION_6_7,
-					MIGRATION_7_8
+					MIGRATION_7_8,
+					MIGRATION_8_9
 				)
 				.build()
 		}

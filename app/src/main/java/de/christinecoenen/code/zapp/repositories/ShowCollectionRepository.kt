@@ -58,6 +58,21 @@ class ShowCollectionRepository(
 	private data class Counts(val total: Int, val watched: Int)
 
 	/**
+	 * Result of processing all shows of a collection.
+	 *
+	 * @param changedCount Number of shows that have been changed by the action.
+	 * @param visibleCount Number of shows that are shown for the collection (excluded shows
+	 *   are not counted).
+	 * @param isComplete Whether the whole mediathek result set has been processed. False if
+	 *   the configured limit or a network error stopped the run.
+	 */
+	private data class UpdateResult(
+		val changedCount: Int,
+		val visibleCount: Int,
+		val isComplete: Boolean,
+	)
+
+	/**
 	 * A collection that contains shows which have not been seen before.
 	 */
 	data class CollectionUpdate(val collection: ShowCollection, val newShowCount: Int)
@@ -178,15 +193,14 @@ class ShowCollectionRepository(
 	 * @return The number of shows that have been marked as watched.
 	 */
 	suspend fun markAllAsWatched(collection: ShowCollection): Int = withContext(Dispatchers.IO) {
-		val markedCount = updateAllFoundShows(collection) { show ->
+		val result = updateAllFoundShows(collection) { show ->
 			mediathekRepository.insertOrUpdateShow(show)
 			mediathekRepository.markAsPlayedIfUnwatched(show.apiId) > 0
 		}
 
-		// update the cached counters
-		database.showCollectionDao().getFromIdSync(collection.id)?.let { refreshCount(it) }
+		updateCountsAfterAction(collection, result)
 
-		markedCount
+		result.changedCount
 	}
 
 	/**
@@ -199,15 +213,14 @@ class ShowCollectionRepository(
 	 * @return The number of shows that have been marked as unwatched.
 	 */
 	suspend fun markAllAsUnwatched(collection: ShowCollection): Int = withContext(Dispatchers.IO) {
-		val markedCount = updateAllFoundShows(collection) { show ->
+		val result = updateAllFoundShows(collection) { show ->
 			// shows that are not stored locally cannot be watched
 			mediathekRepository.resetPlaybackPositionIfPlayed(show.apiId) > 0
 		}
 
-		// update the cached counters
-		database.showCollectionDao().getFromIdSync(collection.id)?.let { refreshCount(it) }
+		updateCountsAfterAction(collection, result)
 
-		markedCount
+		result.changedCount
 	}
 
 	/**
@@ -313,11 +326,13 @@ class ShowCollectionRepository(
 	private suspend fun updateAllFoundShows(
 		collection: ShowCollection,
 		update: suspend (MediathekShow) -> Boolean,
-	): Int {
+	): UpdateResult {
 		val handledApiIds = mutableSetOf<String>()
-		var changedCount = 0
-		var offset = 0
 		val maxProcessedShows = settingsRepository.maxProcessedShows
+		var changedCount = 0
+		var visibleCount = 0
+		var offset = 0
+		var isComplete = false
 
 		while (offset < maxProcessedShows) {
 			val page = try {
@@ -332,6 +347,7 @@ class ShowCollectionRepository(
 			}
 
 			if (page.isEmpty()) {
+				isComplete = true
 				break
 			}
 
@@ -339,6 +355,8 @@ class ShowCollectionRepository(
 				if (collection.isExcluded(show) || !handledApiIds.add(show.apiId)) {
 					continue
 				}
+
+				visibleCount++
 
 				try {
 					if (update(show)) {
@@ -351,13 +369,44 @@ class ShowCollectionRepository(
 
 			if (page.size < PAGE_SIZE) {
 				// last page reached
+				isComplete = true
 				break
 			}
 
 			offset += page.size
 		}
 
-		return changedCount
+		return UpdateResult(changedCount, visibleCount, isComplete)
+	}
+
+	/**
+	 * Updates the cached counters of a collection after "mark all as watched/unwatched".
+	 * If all shows have been processed, the result of that run is used directly instead of
+	 * the cached total, so the counters are correct immediately.
+	 */
+	private suspend fun updateCountsAfterAction(
+		collection: ShowCollection,
+		result: UpdateResult,
+	) {
+		if (!result.isComplete) {
+			// only partial knowledge - fall back to a regular refresh
+			database.showCollectionDao().getFromIdSync(collection.id)?.let { refreshCount(it) }
+			return
+		}
+
+		val watchedCount = countWatchedShowsOf(collection)
+		val unwatchedCount = (result.visibleCount - watchedCount).coerceAtLeast(0)
+
+		if (result.visibleCount != collection.totalCount ||
+			unwatchedCount != collection.unwatchedCount
+		) {
+			database.showCollectionDao().updateCounts(
+				collection.id,
+				result.visibleCount,
+				unwatchedCount,
+				DateTime.now()
+			)
+		}
 	}
 
 	/**

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical"
+	android:paddingHorizontal="24dp"
+	android:paddingTop="8dp">
+
+	<com.google.android.material.textfield.TextInputLayout
+		android:id="@+id/name_layout"
+		style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:hint="@string/dialog_series_name_label">
+
+		<com.google.android.material.textfield.TextInputEditText
+			android:id="@+id/name"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:inputType="text"
+			android:maxLines="1" />
+
+	</com.google.android.material.textfield.TextInputLayout>
+
+	<com.google.android.material.textfield.TextInputLayout
+		android:id="@+id/query_layout"
+		style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="12dp"
+		android:hint="@string/dialog_series_query_label">
+
+		<com.google.android.material.textfield.TextInputEditText
+			android:id="@+id/query"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:inputType="text"
+			android:maxLines="1" />
+
+	</com.google.android.material.textfield.TextInputLayout>
+
+	<com.google.android.material.materialswitch.MaterialSwitch
+		android:id="@+id/mark_all_as_watched"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="16dp"
+		android:text="@string/dialog_series_mark_all_watched" />
+
+	<com.google.android.material.textview.MaterialTextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="4dp"
+		android:text="@string/dialog_series_mark_all_watched_summary"
+		android:textAppearance="?textAppearanceBodySmall" />
+
+</LinearLayout>

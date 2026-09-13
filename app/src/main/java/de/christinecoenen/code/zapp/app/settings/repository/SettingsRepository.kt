@@ -14,6 +14,11 @@ import kotlin.time.Duration.Companion.minutes
 
 class SettingsRepository(context: Context) {
 
+	companion object {
+		private const val DEFAULT_WATCHED_SHOW_FADE = 40
+		private const val MAX_WATCHED_SHOW_FADE = 80
+	}
+
 	private val context = context.applicationContext
 	val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -105,6 +110,30 @@ class SettingsRepository(context: Context) {
 			context.getString(R.string.pref_key_search_history),
 			true
 		)
+
+	/**
+	 * Whether the playback progress should be shown as a percentage instead of a
+	 * circular progress indicator in list overviews.
+	 */
+	val showProgressPercentage: Boolean
+		get() = preferences.getBoolean(
+			context.getString(R.string.pref_key_show_progress_percentage),
+			false
+		)
+
+	/**
+	 * Alpha value (1f = fully visible) that is applied to shows which have been
+	 * marked as watched. Derived from the user defined fade strength.
+	 */
+	val watchedShowAlpha: Float
+		get() {
+			val fadePercent = preferences.getInt(
+				context.getString(R.string.pref_key_watched_show_fade),
+				DEFAULT_WATCHED_SHOW_FADE
+			)
+
+			return 1f - (fadePercent.coerceIn(0, MAX_WATCHED_SHOW_FADE) / 100f)
+		}
 
 	fun prefValueToUiMode(prefSetting: String?): Int {
 		val defaultMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)

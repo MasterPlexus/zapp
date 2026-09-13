@@ -17,5 +17,7 @@
 	<string name="pref_key_download_to_sd_card">pref_key_download_to_sd_card</string>
 	<string name="pref_key_start_tab">pref_key_start_tab</string>
 	<string name="pref_key_delete_started_shows">pref_key_delete_started_shows</string>
+	<string name="pref_key_show_progress_percentage">pref_key_show_progress_percentage</string>
+	<string name="pref_key_watched_show_fade">pref_key_watched_show_fade</string>
 
 </resources>

@@ -20,7 +20,9 @@ import de.christinecoenen.code.zapp.app.mediathek.ui.list.adapter.MediathekShowL
 import de.christinecoenen.code.zapp.app.personal.adapter.HeaderAdapater
 import de.christinecoenen.code.zapp.app.personal.adapter.LoadStatusAdapter
 import de.christinecoenen.code.zapp.app.personal.adapter.MediathekShowListAdapter
+import de.christinecoenen.code.zapp.app.personal.adapter.ShowCollectionListAdapter
 import de.christinecoenen.code.zapp.databinding.PersonalFragmentBinding
+import de.christinecoenen.code.zapp.models.collections.ShowCollection
 import de.christinecoenen.code.zapp.models.shows.MediathekShow
 import de.christinecoenen.code.zapp.utils.system.LifecycleOwnerHelper.launchOnCreated
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -36,7 +38,12 @@ class PersonalFragment : Fragment(), MenuProvider {
 	private lateinit var downloadsAdapter: MediathekShowListAdapter
 	private lateinit var continueWatchingAdapter: MediathekShowListAdapter
 	private lateinit var bookmarkAdapter: MediathekShowListAdapter
+	private lateinit var seriesAdapter: ShowCollectionListAdapter
 
+	private val seriesHeaderAdapter = HeaderAdapater(
+		R.string.activity_main_tab_series,
+		R.drawable.ic_sharp_format_list_bulleted_24
+	) { navigateToSeries() }
 	private val downloadsHeaderAdapter = HeaderAdapater(
 		R.string.activity_main_tab_downloads,
 		R.drawable.ic_baseline_save_alt_24,
@@ -56,6 +63,18 @@ class PersonalFragment : Fragment(), MenuProvider {
 		LoadStatusAdapter(R.string.fragment_personal_no_results_continue_watching)
 	private val bookmarkLoadStatusAdapter =
 		LoadStatusAdapter(R.string.fragment_personal_no_results_bookmarks)
+	private val seriesLoadStatusAdapter =
+		LoadStatusAdapter(R.string.fragment_personal_no_results_series)
+
+	private val seriesClickListener = object : ShowCollectionListAdapter.Listener {
+		override fun onCollectionClicked(collection: ShowCollection) {
+			navigateToSeriesDetail(collection)
+		}
+
+		override fun onCollectionMenuClicked(collection: ShowCollection, view: View) {
+			// the overview list does not offer a context menu
+		}
+	}
 
 	private val showClickListener = object : MediathekShowListItemListener {
 		override fun onShowClicked(show: MediathekShow) {
@@ -75,8 +94,15 @@ class PersonalFragment : Fragment(), MenuProvider {
 		downloadsAdapter = MediathekShowListAdapter(lifecycleScope, showClickListener)
 		continueWatchingAdapter = MediathekShowListAdapter(lifecycleScope, showClickListener)
 		bookmarkAdapter = MediathekShowListAdapter(lifecycleScope, showClickListener)
+		seriesAdapter = ShowCollectionListAdapter(false, seriesClickListener)
+
+		// always show the "view all" button, so collections can be created from here
+		seriesHeaderAdapter.setShowMoreButton(true)
 
 		outerAdapter = ConcatAdapter(
+			seriesHeaderAdapter,
+			seriesAdapter,
+			seriesLoadStatusAdapter,
 			downloadsHeaderAdapter,
 			downloadsAdapter,
 			downloadsLoadStatusAdapter,
@@ -97,6 +123,13 @@ class PersonalFragment : Fragment(), MenuProvider {
 		_binding = PersonalFragmentBinding.inflate(inflater, container, false)
 
 		binding.list.adapter = outerAdapter
+
+		launchOnCreated {
+			viewModel.seriesFlow.collect {
+				seriesAdapter.submitList(it)
+				seriesLoadStatusAdapter.onShowsLoaded(it.size)
+			}
+		}
 
 		launchOnCreated {
 			viewModel.downloadsFlow.collect {
@@ -154,6 +187,16 @@ class PersonalFragment : Fragment(), MenuProvider {
 
 	private fun navigateToBookmarks() {
 		val directions = PersonalFragmentDirections.toBookmarksFragment()
+		findNavController().navigate(directions)
+	}
+
+	private fun navigateToSeries() {
+		val directions = PersonalFragmentDirections.toSeriesFragment()
+		findNavController().navigate(directions)
+	}
+
+	private fun navigateToSeriesDetail(collection: ShowCollection) {
+		val directions = PersonalFragmentDirections.toSeriesDetailFragment(collectionId = collection.id)
 		findNavController().navigate(directions)
 	}
 

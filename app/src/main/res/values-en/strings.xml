@@ -8,6 +8,7 @@
 	<string name="activity_main_tab_continue_watching">Continue Watching</string>
 	<string name="activity_main_tab_bookmarks">Bookmarks</string>
 	<string name="activity_main_tab_personal">My Shows</string>
+	<string name="activity_main_tab_series">Series</string>
 
 	<string name="about_summary">Zapp is part of MediathekView and gives you easy access to a large number of German public broadcasting live streams. Watch ARD, ZDF and other channels live.</string>
 	<string name="about_feedback_mail_subject">Zapp Feedback</string>
@@ -48,6 +49,7 @@
 	<string name="fragment_personal_no_results_downloads">no downloads found</string>
 	<string name="fragment_personal_no_results_continue_watching">no started shows found</string>
 	<string name="fragment_personal_no_results_bookmarks">no bookmarks found</string>
+	<string name="fragment_personal_no_results_series">no collections created</string>
 	<string name="fragment_personal_today">Today</string>
 
 	<!-- error messages -->
@@ -90,6 +92,26 @@
 	<string name="action_mark_unwatched">Mark as unwatched</string>
 	<string name="action_mark_watched">Mark as watched</string>
 	<string name="action_view_all">View all</string>
+
+	<!-- series -->
+	<string name="fragment_series_no_results">no collections created</string>
+	<string name="fragment_series_item_query">Search: %1$s</string>
+	<string name="action_add_collection">Create collection</string>
+	<string name="action_edit_collection">Edit collection</string>
+	<string name="action_delete_collection">Delete collection</string>
+	<string name="action_mark_all_watched">Mark all as watched</string>
+	<string name="dialog_series_create_title">Create collection</string>
+	<string name="dialog_series_edit_title">Edit collection</string>
+	<string name="dialog_series_name_label">Name</string>
+	<string name="dialog_series_query_label">Search term</string>
+	<string name="dialog_series_mark_all_watched">Mark all finds as watched</string>
+	<string name="dialog_series_mark_all_watched_summary">All shows found for this collection will be marked as watched.</string>
+	<string name="dialog_series_delete_title">Delete collection?</string>
+	<string name="dialog_series_delete_text">The collection “%1$s” will be deleted.</string>
+	<string name="fragment_series_mark_all_watched_success">Marked %1$d shows as watched</string>
+	<string name="fragment_series_mark_all_watched_none">No shows marked as watched</string>
+	<string name="error_series_missing_name">Please enter a name</string>
+	<string name="error_series_missing_query">Please enter a search term</string>
 
 	<string name="search_query_hint_zapp">Search in Zapp…</string>
 	<string name="search_query_hint_mediathek">Search media center…</string>
@@ -179,6 +201,12 @@
 
 	<string name="pref_detail_search_history_title">Search history</string>
 	<string name="pref_detail_search_history_summary">Remember the most recent search queries.</string>
+
+	<string name="pref_show_progress_percentage_title">Progress as percentage</string>
+	<string name="pref_show_progress_percentage_summary">Shows the playback progress in overviews as a percentage instead of a progress circle.</string>
+
+	<string name="pref_watched_show_fade_title">Fade watched shows</string>
+	<string name="pref_watched_show_fade_summary">How strongly shows marked as watched are faded out.</string>
 
 	<string name="pref_dialog_confirm_reset_playback_position_title">Reset started shows?</string>
 	<string name="pref_dialog_confirm_reset_playback_position_text">Deletes the progress of all shows you started or finished watching. No downloads will be deleted.</string>

@@ -34,6 +34,22 @@
 			android:title="@string/pref_language_title"
 			app:useSimpleSummaryProvider="true" />
 
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:key="@string/pref_key_show_progress_percentage"
+			android:summary="@string/pref_show_progress_percentage_summary"
+			android:title="@string/pref_show_progress_percentage_title" />
+
+		<SeekBarPreference
+			android:defaultValue="40"
+			android:key="@string/pref_key_watched_show_fade"
+			android:max="80"
+			android:min="0"
+			android:summary="@string/pref_watched_show_fade_summary"
+			android:title="@string/pref_watched_show_fade_title"
+			app:seekBarIncrement="10"
+			app:showSeekBarValue="true" />
+
 	</PreferenceCategory>
 
 	<PreferenceCategory

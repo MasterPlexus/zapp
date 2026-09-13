@@ -8,12 +8,13 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteException
 import androidx.sqlite.db.SupportSQLiteDatabase
+import de.christinecoenen.code.zapp.models.collections.ShowCollection
 import de.christinecoenen.code.zapp.models.search.SearchQuery
 import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 
 @Database(
-	entities = [PersistedMediathekShow::class, SearchQuery::class],
-	version = 4,
+	entities = [PersistedMediathekShow::class, SearchQuery::class, ShowCollection::class],
+	version = 5,
 	autoMigrations = [],
 	exportSchema = true
 )
@@ -21,6 +22,15 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 abstract class Database : RoomDatabase() {
 
 	companion object {
+
+		/**
+		 * Add series collections feature
+		 */
+		private val MIGRATION_4_5 = object : Migration(4, 5) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("CREATE TABLE IF NOT EXISTS `ShowCollection` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `searchQuery` TEXT NOT NULL, `markAllAsWatched` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)")
+			}
+		}
 
 		private val MIGRATION_3_4 = object : Migration(3, 4) {
 			override fun migrate(db: SupportSQLiteDatabase) {
@@ -84,7 +94,8 @@ abstract class Database : RoomDatabase() {
 				.addMigrations(
 					MIGRATION_1_2,
 					MIGRATION_2_3,
-					MIGRATION_3_4
+					MIGRATION_3_4,
+					MIGRATION_4_5
 				)
 				.build()
 		}
@@ -94,5 +105,7 @@ abstract class Database : RoomDatabase() {
 	abstract fun mediathekShowDao(): MediathekShowDao
 
 	abstract fun searchDao(): SearchDao
+
+	abstract fun showCollectionDao(): ShowCollectionDao
 
 }

@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import de.christinecoenen.code.zapp.R
+import de.christinecoenen.code.zapp.app.settings.repository.SettingsRepository
 import de.christinecoenen.code.zapp.databinding.MediathekListFragmentItemBinding
 import de.christinecoenen.code.zapp.models.shows.DownloadStatus
 import de.christinecoenen.code.zapp.models.shows.MediathekShow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.transform
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 class MediathekItemViewHolder(
@@ -27,6 +29,7 @@ class MediathekItemViewHolder(
 ) : RecyclerView.ViewHolder(binding.root), KoinComponent {
 
 	private val mediathekRepository: MediathekRepository by inject()
+	private val settingsRepository: SettingsRepository by inject()
 
 	private val bgColorDefault = binding.root.context.themeColor(com.google.android.material.R.attr.backgroundColor)
 	private val bgColorHighlight by lazy { binding.root.context.themeColor(com.google.android.material.R.attr.colorSurface) }
@@ -60,7 +63,11 @@ class MediathekItemViewHolder(
 		binding.downloadProgressIcon.isVisible = false
 		binding.downloadStatusIcon.isVisible = false
 		binding.viewingStatus.isVisible = false
+		binding.viewingStatusIcon.isVisible = false
 		binding.viewingProgress.isVisible = false
+		binding.viewingProgressPercent.isVisible = false
+
+		binding.root.alpha = 1f
 
 		binding.root.setBackgroundColor(bgColorDefault)
 
@@ -166,9 +173,20 @@ class MediathekItemViewHolder(
 	}
 
 	private fun updatePlaybackPositionPercentFlow(percent: Float) {
-		binding.viewingStatus.isVisible = percent > 0
+		val hasProgress = percent > 0
+		val isWatched = percent >= 1f
+		val showPercentage = settingsRepository.showProgressPercentage
+
+		// fade out shows that are marked as watched
+		binding.root.alpha = if (isWatched) settingsRepository.watchedShowAlpha else 1f
+
+		binding.viewingStatus.isVisible = hasProgress
+		binding.viewingStatusIcon.isVisible = hasProgress && !showPercentage
+		binding.viewingProgress.isVisible = hasProgress && !showPercentage
 		binding.viewingProgress.progress = (percent * binding.viewingProgress.max).toInt()
-		binding.viewingProgress.isVisible = percent > 0
+
+		binding.viewingProgressPercent.isVisible = hasProgress && showPercentage
+		binding.viewingProgressPercent.text = "${(percent * 100).roundToInt()}%"
 	}
 
 	private suspend fun onVideoPathChanged(videoPath: String?) {

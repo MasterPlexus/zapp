@@ -153,6 +153,15 @@
 			android:title="@string/pref_collection_max_shows_title"
 			app:useSimpleSummaryProvider="true" />
 
+		<ListPreference
+			android:defaultValue="360"
+			android:entries="@array/pref_collection_check_interval_names"
+			android:entryValues="@array/pref_collection_check_interval_values"
+			android:key="@string/pref_key_collection_check_interval"
+			android:summary="@string/pref_collection_check_interval_summary"
+			android:title="@string/pref_collection_check_interval_title"
+			app:useSimpleSummaryProvider="true" />
+
 	</PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

@@ -5,11 +5,13 @@ import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
 import de.christinecoenen.code.zapp.R
+import de.christinecoenen.code.zapp.app.personal.series.CollectionUpdateScheduler
 import de.christinecoenen.code.zapp.app.settings.repository.SettingsRepository
 import de.christinecoenen.code.zapp.repositories.ChannelRepository
 import de.christinecoenen.code.zapp.repositories.MediathekRepository
 import de.christinecoenen.code.zapp.tv.error.CrashActivity
 import de.christinecoenen.code.zapp.utils.system.NotificationHelper.createBackgroundPlaybackChannel
+import de.christinecoenen.code.zapp.utils.system.NotificationHelper.createCollectionUpdateChannel
 import org.acra.ACRA
 import org.acra.BuildConfig
 import org.acra.ReportField
@@ -48,6 +50,7 @@ abstract class ZappApplicationBase : Application() {
 
 		setUpLogging()
 		createBackgroundPlaybackChannel(this)
+		createCollectionUpdateChannel(this)
 
 		koin = startKoin {
 			androidLogger(Level.ERROR)
@@ -57,6 +60,9 @@ abstract class ZappApplicationBase : Application() {
 
 		val settingsRepository = SettingsRepository(this)
 		AppCompatDelegate.setDefaultNightMode(settingsRepository.uiMode)
+
+		// check the collections for new shows in the background
+		CollectionUpdateScheduler.schedule(this, settingsRepository.collectionCheckIntervalMinutes)
 
 		// apply dynamic colors to all activities if enabled by user
 		if (settingsRepository.dynamicColors) {

@@ -218,8 +218,27 @@
 	<string name="pref_watched_show_mode_fade">Verblassen</string>
 	<string name="pref_watched_show_mode_hide">Ausblenden</string>
 
+	<plurals name="notification_collection_update_text">
+		<item quantity="one">%1$d neue Sendung</item>
+		<item quantity="other">%1$d neue Sendungen</item>
+	</plurals>
+
+	<string name="notification_channel_name_collection_update">Neue Sendungen in Kollektionen</string>
+	<string name="notification_collection_update_title">Neu in „%1$s“</string>
+
 	<string name="pref_collection_max_shows_title">Maximale Sendungen pro Kollektions-Aktion</string>
 	<string name="pref_collection_max_shows_summary">Obergrenze für „Alle als gesehen/ungesehen markieren“.</string>
+
+	<string name="pref_collection_check_interval_title">Prüfung auf neue Sendungen</string>
+	<string name="pref_collection_check_interval_summary">Benachrichtigt, wenn eine Kollektion neue Sendungen enthält.</string>
+	<string name="pref_collection_check_interval_off">Aus</string>
+	<string name="pref_collection_check_interval_15_minutes">Alle 15 Minuten</string>
+	<string name="pref_collection_check_interval_30_minutes">Alle 30 Minuten</string>
+	<string name="pref_collection_check_interval_hourly">Stündlich</string>
+	<string name="pref_collection_check_interval_3_hours">Alle 3 Stunden</string>
+	<string name="pref_collection_check_interval_6_hours">Alle 6 Stunden</string>
+	<string name="pref_collection_check_interval_12_hours">Alle 12 Stunden</string>
+	<string name="pref_collection_check_interval_daily">Täglich</string>
 
 	<string name="pref_dialog_confirm_reset_playback_position_title">Begonnene Sendungen zurücksetzen?</string>
 	<string name="pref_dialog_confirm_reset_playback_position_text">Löscht den Fortschritt von allen begonnenen oder angesehenen Sendungen. Es werden keine Downloads gelöscht.</string>

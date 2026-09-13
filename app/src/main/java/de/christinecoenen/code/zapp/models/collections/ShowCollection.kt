@@ -42,6 +42,12 @@ data class ShowCollection(
 	 */
 	var countUpdatedAt: DateTime? = null,
 
+	/**
+	 * Timestamp (seconds) of the newest show that was seen for this collection. Used to
+	 * detect new shows. 0 means "not checked yet".
+	 */
+	var lastKnownShowTimestamp: Int = 0,
+
 	var createdAt: DateTime = DateTime.now()
 )
 

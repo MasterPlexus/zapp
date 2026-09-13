@@ -14,7 +14,7 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 
 @Database(
 	entities = [PersistedMediathekShow::class, SearchQuery::class, ShowCollection::class],
-	version = 7,
+	version = 8,
 	autoMigrations = [],
 	exportSchema = true
 )
@@ -22,6 +22,15 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 abstract class Database : RoomDatabase() {
 
 	companion object {
+
+		/**
+		 * Remember the newest known show of a collection to be able to detect new shows
+		 */
+		private val MIGRATION_7_8 = object : Migration(7, 8) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("ALTER TABLE ShowCollection ADD COLUMN lastKnownShowTimestamp INTEGER NOT NULL DEFAULT 0")
+			}
+		}
 
 		/**
 		 * Replace the "mark all as watched" flag of collections with excluded search terms
@@ -120,7 +129,8 @@ abstract class Database : RoomDatabase() {
 					MIGRATION_3_4,
 					MIGRATION_4_5,
 					MIGRATION_5_6,
-					MIGRATION_6_7
+					MIGRATION_6_7,
+					MIGRATION_7_8
 				)
 				.build()
 		}

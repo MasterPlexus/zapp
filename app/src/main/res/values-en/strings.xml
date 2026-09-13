@@ -218,8 +218,27 @@
 	<string name="pref_watched_show_mode_fade">Fade out</string>
 	<string name="pref_watched_show_mode_hide">Hide</string>
 
+	<plurals name="notification_collection_update_text">
+		<item quantity="one">%1$d new show</item>
+		<item quantity="other">%1$d new shows</item>
+	</plurals>
+
+	<string name="notification_channel_name_collection_update">New shows in collections</string>
+	<string name="notification_collection_update_title">New in “%1$s”</string>
+
 	<string name="pref_collection_max_shows_title">Maximum shows per collection action</string>
 	<string name="pref_collection_max_shows_summary">Upper limit for “mark all as watched/unwatched”.</string>
+
+	<string name="pref_collection_check_interval_title">Check for new shows</string>
+	<string name="pref_collection_check_interval_summary">Notifies you when a collection contains new shows.</string>
+	<string name="pref_collection_check_interval_off">Off</string>
+	<string name="pref_collection_check_interval_15_minutes">Every 15 minutes</string>
+	<string name="pref_collection_check_interval_30_minutes">Every 30 minutes</string>
+	<string name="pref_collection_check_interval_hourly">Hourly</string>
+	<string name="pref_collection_check_interval_3_hours">Every 3 hours</string>
+	<string name="pref_collection_check_interval_6_hours">Every 6 hours</string>
+	<string name="pref_collection_check_interval_12_hours">Every 12 hours</string>
+	<string name="pref_collection_check_interval_daily">Daily</string>
 
 	<string name="pref_dialog_confirm_reset_playback_position_title">Reset started shows?</string>
 	<string name="pref_dialog_confirm_reset_playback_position_text">Deletes the progress of all shows you started or finished watching. No downloads will be deleted.</string>

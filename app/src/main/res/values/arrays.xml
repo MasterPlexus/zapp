@@ -68,6 +68,28 @@
 		<item>25.000</item>
 	</string-array>
 
+	<string-array name="pref_collection_check_interval_values">
+		<item>0</item>
+		<item>15</item>
+		<item>30</item>
+		<item>60</item>
+		<item>180</item>
+		<item>360</item>
+		<item>720</item>
+		<item>1440</item>
+	</string-array>
+
+	<string-array name="pref_collection_check_interval_names">
+		<item>@string/pref_collection_check_interval_off</item>
+		<item>@string/pref_collection_check_interval_15_minutes</item>
+		<item>@string/pref_collection_check_interval_30_minutes</item>
+		<item>@string/pref_collection_check_interval_hourly</item>
+		<item>@string/pref_collection_check_interval_3_hours</item>
+		<item>@string/pref_collection_check_interval_6_hours</item>
+		<item>@string/pref_collection_check_interval_12_hours</item>
+		<item>@string/pref_collection_check_interval_daily</item>
+	</string-array>
+
 	<string-array name="available_tabs_names">
 		<item>@string/activity_main_tab_live</item>
 		<item>@string/activity_main_tab_mediathek</item>

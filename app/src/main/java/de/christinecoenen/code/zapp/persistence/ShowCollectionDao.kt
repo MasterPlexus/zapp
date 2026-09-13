@@ -18,6 +18,12 @@ interface ShowCollectionDao {
 	@Query("SELECT * FROM ShowCollection ORDER BY createdAt DESC LIMIT :limit")
 	fun getRecent(limit: Int): Flow<List<ShowCollection>>
 
+	@Query("SELECT * FROM ShowCollection")
+	suspend fun getAllSync(): List<ShowCollection>
+
+	@Query("UPDATE ShowCollection SET lastKnownShowTimestamp=:timestamp WHERE id=:id")
+	suspend fun updateLastKnownShowTimestamp(id: Int, timestamp: Int)
+
 	@Query("SELECT * FROM ShowCollection WHERE id=:id")
 	fun getFromId(id: Int): Flow<ShowCollection?>
 

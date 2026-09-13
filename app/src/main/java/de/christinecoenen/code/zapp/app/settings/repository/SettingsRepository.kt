@@ -19,6 +19,7 @@ class SettingsRepository(context: Context) {
 		private const val MAX_WATCHED_SHOW_FADE = 80
 		private const val WATCHED_SHOW_MODE_HIDE = "hide"
 		private const val DEFAULT_MAX_PROCESSED_SHOWS = 5000
+		private const val DEFAULT_COLLECTION_CHECK_INTERVAL_MINUTES = 360
 	}
 
 	/**
@@ -173,6 +174,16 @@ class SettingsRepository(context: Context) {
 			context.getString(R.string.pref_key_collection_max_shows),
 			null
 		)?.toIntOrNull() ?: DEFAULT_MAX_PROCESSED_SHOWS
+
+	/**
+	 * Interval (minutes) in which the collections are checked for new shows.
+	 * 0 disables the check.
+	 */
+	val collectionCheckIntervalMinutes: Int
+		get() = preferences.getString(
+			context.getString(R.string.pref_key_collection_check_interval),
+			null
+		)?.toIntOrNull() ?: DEFAULT_COLLECTION_CHECK_INTERVAL_MINUTES
 
 	fun prefValueToUiMode(prefSetting: String?): Int {
 		val defaultMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)

@@ -20,5 +20,6 @@
 	<string name="pref_key_show_progress_percentage">pref_key_show_progress_percentage</string>
 	<string name="pref_key_watched_show_mode">pref_key_watched_show_mode</string>
 	<string name="pref_key_watched_show_fade">pref_key_watched_show_fade</string>
+	<string name="pref_key_collection_max_shows">pref_key_collection_max_shows</string>
 
 </resources>

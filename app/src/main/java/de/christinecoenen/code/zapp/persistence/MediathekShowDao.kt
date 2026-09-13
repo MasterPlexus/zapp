@@ -182,8 +182,8 @@ interface MediathekShowDao {
 	@Query("SELECT (CAST(playbackPosition AS FLOAT) / videoDuration) FROM PersistedMediathekShow WHERE apiId=:apiId")
 	fun getPlaybackPositionPercent(apiId: String): Flow<Float>
 
-	@Query("SELECT COUNT(*) FROM PersistedMediathekShow WHERE (topic LIKE :searchQuery OR title LIKE :searchQuery) AND videoDuration > 0 AND playbackPosition >= videoDuration")
-	suspend fun countWatchedForQuery(searchQuery: String): Int
+	@Query("SELECT * FROM PersistedMediathekShow WHERE videoDuration > 0 AND playbackPosition >= videoDuration")
+	suspend fun getWatchedShows(): List<PersistedMediathekShow>
 
 	@Query("SELECT downloadedVideoPath FROM PersistedMediathekShow WHERE apiId=:apiId AND downloadStatus=4")
 	fun getCompletetlyDownloadedVideoPath(apiId: String): Flow<String?>

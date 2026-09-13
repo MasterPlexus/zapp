@@ -18,6 +18,7 @@ class SettingsRepository(context: Context) {
 		private const val DEFAULT_WATCHED_SHOW_FADE = 40
 		private const val MAX_WATCHED_SHOW_FADE = 80
 		private const val WATCHED_SHOW_MODE_HIDE = "hide"
+		private const val DEFAULT_MAX_PROCESSED_SHOWS = 5000
 	}
 
 	/**
@@ -149,6 +150,10 @@ class SettingsRepository(context: Context) {
 	 * Alpha value (1f = fully visible) that is applied to shows which have been
 	 * marked as watched. Derived from the user defined fade strength.
 	 */
+	/**
+	 * Alpha value (1f = fully visible) that is applied to shows which have been
+	 * marked as watched. Derived from the user defined fade strength.
+	 */
 	val watchedShowAlpha: Float
 		get() {
 			val fadePercent = preferences.getInt(
@@ -158,6 +163,16 @@ class SettingsRepository(context: Context) {
 
 			return 1f - (fadePercent.coerceIn(0, MAX_WATCHED_SHOW_FADE) / 100f)
 		}
+
+	/**
+	 * Upper limit of shows that are processed by a single
+	 * "mark all as watched/unwatched" action.
+	 */
+	val maxProcessedShows: Int
+		get() = preferences.getString(
+			context.getString(R.string.pref_key_collection_max_shows),
+			null
+		)?.toIntOrNull() ?: DEFAULT_MAX_PROCESSED_SHOWS
 
 	fun prefValueToUiMode(prefSetting: String?): Int {
 		val defaultMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)

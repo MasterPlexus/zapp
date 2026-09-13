@@ -64,3 +64,30 @@ fun ShowCollection.isExcluded(show: MediathekShow): Boolean {
 			show.topic.contains(term, ignoreCase = true)
 	}
 }
+
+/**
+ * Whether the given show belongs to this collection: it must match all words of
+ * [ShowCollection.searchQuery] in title or topic and must not be excluded.
+ *
+ * This mirrors the way the mediathek search works (all words must match) and is
+ * unicode aware, unlike a SQL "LIKE" query.
+ */
+fun ShowCollection.matches(show: MediathekShow): Boolean {
+	if (isExcluded(show)) {
+		return false
+	}
+
+	val searchWords = searchQuery
+		.split(' ', '\t', '\n')
+		.map { it.trim() }
+		.filter { it.isNotEmpty() }
+
+	if (searchWords.isEmpty()) {
+		return false
+	}
+
+	return searchWords.all { word ->
+		show.title.contains(word, ignoreCase = true) ||
+			show.topic.contains(word, ignoreCase = true)
+	}
+}

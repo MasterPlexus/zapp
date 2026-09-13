@@ -52,6 +52,22 @@
 		<item>@string/pref_watched_show_mode_hide</item>
 	</string-array>
 
+	<string-array name="pref_collection_max_shows_values">
+		<item>1000</item>
+		<item>2500</item>
+		<item>5000</item>
+		<item>10000</item>
+		<item>25000</item>
+	</string-array>
+
+	<string-array name="pref_collection_max_shows_names">
+		<item>1.000</item>
+		<item>2.500</item>
+		<item>5.000</item>
+		<item>10.000</item>
+		<item>25.000</item>
+	</string-array>
+
 	<string-array name="available_tabs_names">
 		<item>@string/activity_main_tab_live</item>
 		<item>@string/activity_main_tab_mediathek</item>

@@ -218,6 +218,9 @@
 	<string name="pref_watched_show_mode_fade">Verblassen</string>
 	<string name="pref_watched_show_mode_hide">Ausblenden</string>
 
+	<string name="pref_collection_max_shows_title">Maximale Sendungen pro Kollektions-Aktion</string>
+	<string name="pref_collection_max_shows_summary">Obergrenze für „Alle als gesehen/ungesehen markieren“.</string>
+
 	<string name="pref_dialog_confirm_reset_playback_position_title">Begonnene Sendungen zurücksetzen?</string>
 	<string name="pref_dialog_confirm_reset_playback_position_text">Löscht den Fortschritt von allen begonnenen oder angesehenen Sendungen. Es werden keine Downloads gelöscht.</string>
 	<string name="pref_dialog_confirm_reset_playback_position_success_toast">Alle begonnene Sendungen erfolgreich zurückgesetzt</string>

@@ -2,17 +2,24 @@ package de.christinecoenen.code.zapp.repositories
 
 import de.christinecoenen.code.zapp.app.mediathek.api.IMediathekApiService
 import de.christinecoenen.code.zapp.app.mediathek.api.request.QueryRequest
+import de.christinecoenen.code.zapp.app.settings.repository.SettingsRepository
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
 import de.christinecoenen.code.zapp.models.collections.isExcluded
+import de.christinecoenen.code.zapp.models.collections.matches
 import de.christinecoenen.code.zapp.models.shows.MediathekShow
 import de.christinecoenen.code.zapp.persistence.Database
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import timber.log.Timber
@@ -25,6 +32,7 @@ class ShowCollectionRepository(
 	private val database: Database,
 	private val mediathekApi: IMediathekApiService,
 	private val mediathekRepository: MediathekRepository,
+	private val settingsRepository: SettingsRepository,
 ) {
 
 	companion object {
@@ -34,25 +42,21 @@ class ShowCollectionRepository(
 		private const val PAGE_SIZE = 100
 
 		/**
-		 * Upper bound of shows that are processed in one run. Acts as a safety net so that
-		 * "mark all as watched/unwatched" can never run endlessly.
-		 */
-		private const val MAX_PROCESSED_SHOWS = 5000
-
-		/**
 		 * Time after which the total number of found shows is fetched again.
 		 */
 		private const val COUNT_MAX_AGE_HOURS = 6
 	}
 
 	private val refreshTrigger = MutableStateFlow(0)
+	private val refreshScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	private val refreshMutex = Mutex()
 
 	/**
 	 * Observes all collections and keeps their unwatched/total counters up to date.
 	 */
 	fun getAllWithCounts(): Flow<List<ShowCollection>> {
 		return combine(getAll(), refreshTrigger) { collections, _ -> collections }
-			.onEach { collections -> collections.forEach { refreshCount(it) } }
+			.onEach { collections -> requestCountRefreshFor(collections) }
 	}
 
 	/**
@@ -60,7 +64,23 @@ class ShowCollectionRepository(
 	 */
 	fun getRecentWithCounts(limit: Int): Flow<List<ShowCollection>> {
 		return combine(getRecent(limit), refreshTrigger) { collections, _ -> collections }
-			.onEach { collections -> collections.forEach { refreshCount(it) } }
+			.onEach { collections -> requestCountRefreshFor(collections) }
+	}
+
+	/**
+	 * Refreshes the counters in the background, so that observers of the collection flow
+	 * do not have to wait for network requests.
+	 */
+	private fun requestCountRefreshFor(collections: List<ShowCollection>) {
+		if (collections.isEmpty()) {
+			return
+		}
+
+		refreshScope.launch {
+			refreshMutex.withLock {
+				collections.forEach { refreshCount(it) }
+			}
+		}
 	}
 
 	/**
@@ -190,13 +210,19 @@ class ShowCollectionRepository(
 		val handledApiIds = mutableSetOf<String>()
 		var changedCount = 0
 		var offset = 0
+		val maxProcessedShows = settingsRepository.maxProcessedShows
 
-		while (offset < MAX_PROCESSED_SHOWS) {
-			val page = searchMediathek(
-				searchQuery = collection.searchQuery,
-				size = PAGE_SIZE,
-				offset = offset
-			)
+		while (offset < maxProcessedShows) {
+			val page = try {
+				searchMediathek(
+					searchQuery = collection.searchQuery,
+					size = PAGE_SIZE,
+					offset = offset
+				)
+			} catch (e: Exception) {
+				Timber.e(e, "Could not load shows of collection ${collection.id} (offset $offset)")
+				break
+			}
 
 			if (page.isEmpty()) {
 				break
@@ -235,14 +261,22 @@ class ShowCollectionRepository(
 	private suspend fun refreshCount(collection: ShowCollection) {
 		val watchedCount = database
 			.mediathekShowDao()
-			.countWatchedForQuery("%${collection.searchQuery}%")
+			.getWatchedShows()
+			.count { persistedShow -> collection.matches(persistedShow.mediathekShow) }
 
 		val storedUpdatedAt = collection.countUpdatedAt
 		val isStale = storedUpdatedAt == null ||
 			storedUpdatedAt.plusHours(COUNT_MAX_AGE_HOURS).isBeforeNow()
 
 		val totalCount = if (isStale) {
-			searchMediathekTotalCount(collection.searchQuery) ?: return
+			val fetchedTotalCount = try {
+				searchMediathekTotalCount(collection.searchQuery)
+			} catch (e: Exception) {
+				Timber.e(e, "Could not load show count of collection ${collection.id}")
+				null
+			}
+
+			fetchedTotalCount ?: return
 		} else {
 			collection.totalCount
 		}

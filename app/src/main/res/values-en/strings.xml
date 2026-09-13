@@ -218,6 +218,9 @@
 	<string name="pref_watched_show_mode_fade">Fade out</string>
 	<string name="pref_watched_show_mode_hide">Hide</string>
 
+	<string name="pref_collection_max_shows_title">Maximum shows per collection action</string>
+	<string name="pref_collection_max_shows_summary">Upper limit for “mark all as watched/unwatched”.</string>
+
 	<string name="pref_dialog_confirm_reset_playback_position_title">Reset started shows?</string>
 	<string name="pref_dialog_confirm_reset_playback_position_text">Deletes the progress of all shows you started or finished watching. No downloads will be deleted.</string>
 	<string name="pref_dialog_confirm_reset_playback_position_success_toast">Successfully reset all started shows</string>

@@ -145,6 +145,14 @@
 			android:summary="@string/pref_delete_started_shows_summary"
 			android:title="@string/pref_delete_started_shows_title" />
 
+		<ListPreference
+			android:defaultValue="5000"
+			android:entries="@array/pref_collection_max_shows_names"
+			android:entryValues="@array/pref_collection_max_shows_values"
+			android:key="@string/pref_key_collection_max_shows"
+			android:title="@string/pref_collection_max_shows_title"
+			app:useSimpleSummaryProvider="true" />
+
 	</PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

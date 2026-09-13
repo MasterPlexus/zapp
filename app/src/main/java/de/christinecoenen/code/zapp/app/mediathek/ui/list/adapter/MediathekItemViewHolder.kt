@@ -68,7 +68,7 @@ class MediathekItemViewHolder(
 		binding.viewingProgressPercent.isVisible = false
 
 		binding.root.isVisible = true
-		binding.root.alpha = 1f
+		setContentAlpha(1f)
 
 		binding.root.setBackgroundColor(bgColorDefault)
 
@@ -182,21 +182,10 @@ class MediathekItemViewHolder(
 		val hideWatched = isWatched &&
 			settingsRepository.watchedShowDisplay == SettingsRepository.WatchedShowDisplay.HIDE
 
-		when {
-			hideWatched -> {
-				binding.root.isVisible = false
-			}
-
-			isWatched -> {
-				binding.root.isVisible = true
-				binding.root.alpha = settingsRepository.watchedShowAlpha
-			}
-
-			else -> {
-				binding.root.isVisible = true
-				binding.root.alpha = 1f
-			}
-		}
+		binding.root.isVisible = !hideWatched
+		setContentAlpha(
+			if (isWatched && !hideWatched) settingsRepository.watchedShowAlpha else 1f
+		)
 
 		binding.viewingStatus.isVisible = hasProgress
 		binding.viewingStatusIcon.isVisible = hasProgress && !showPercentage
@@ -240,5 +229,16 @@ class MediathekItemViewHolder(
 		binding.thumbnail.setImageBitmap(thumbnail)
 		binding.thumbnail.imageAlpha = 255
 		binding.thumbnail.scaleType = ImageView.ScaleType.CENTER_CROP
+	}
+
+	/**
+	 * Applies the alpha to all content views of this item. The alpha of the root view is
+	 * intentionally left untouched, because RecyclerView's item animator animates the root
+	 * alpha when items are inserted and would override our value.
+	 */
+	private fun setContentAlpha(alpha: Float) {
+		for (index in 0 until binding.root.childCount) {
+			binding.root.getChildAt(index).alpha = alpha
+		}
 	}
 }

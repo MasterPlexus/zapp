@@ -4,13 +4,13 @@ import de.christinecoenen.code.zapp.app.mediathek.api.IMediathekApiService
 import de.christinecoenen.code.zapp.app.mediathek.api.request.QueryRequest
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
 import de.christinecoenen.code.zapp.models.collections.isExcluded
+import de.christinecoenen.code.zapp.models.shows.MediathekShow
 import de.christinecoenen.code.zapp.persistence.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
@@ -29,9 +29,15 @@ class ShowCollectionRepository(
 
 	companion object {
 		/**
-		 * Maximum number of shows that will be marked as watched at once.
+		 * Number of shows requested per mediathek page.
 		 */
-		private const val MARK_AS_WATCHED_LIMIT = 100
+		private const val PAGE_SIZE = 100
+
+		/**
+		 * Upper bound of shows that are processed in one run. Acts as a safety net so that
+		 * "mark all as watched/unwatched" can never run endlessly.
+		 */
+		private const val MAX_PROCESSED_SHOWS = 5000
 
 		/**
 		 * Time after which the total number of found shows is fetched again.
@@ -133,34 +139,92 @@ class ShowCollectionRepository(
 	 * Searches the mediatheks for the collection query and marks all found
 	 * shows as watched. Shows that are already marked as watched are skipped.
 	 *
+	 * The mediathek search is paginated, so *all* results are processed, not only
+	 * the first page.
+	 *
 	 * @return The number of shows that have been marked as watched.
 	 */
 	suspend fun markAllAsWatched(collection: ShowCollection): Int = withContext(Dispatchers.IO) {
-		val shows = searchMediathek(collection.searchQuery, MARK_AS_WATCHED_LIMIT)
-			.filter { show -> !collection.isExcluded(show) }
-
-		var markedCount = 0
-		for (show in shows) {
-			try {
-				val persistedShow = mediathekRepository.persistOrUpdateShow(show).first()
-
-				if (persistedShow.videoDuration <= 0 ||
-					persistedShow.playbackPosition >= persistedShow.videoDuration
-				) {
-					continue
-				}
-
-				mediathekRepository.markAsPlayed(show.apiId)
-				markedCount++
-			} catch (e: Exception) {
-				Timber.e(e, "Could not mark show ${show.apiId} as watched")
-			}
+		val markedCount = updateAllFoundShows(collection) { show ->
+			mediathekRepository.insertOrUpdateShow(show)
+			mediathekRepository.markAsPlayedIfUnwatched(show.apiId) > 0
 		}
 
 		// update the cached counters
 		database.showCollectionDao().getFromIdSync(collection.id)?.let { refreshCount(it) }
 
 		markedCount
+	}
+
+	/**
+	 * Searches the mediatheks for the collection query and marks all found
+	 * shows as unwatched. Shows that are not watched are skipped.
+	 *
+	 * The mediathek search is paginated, so *all* results are processed, not only
+	 * the first page.
+	 *
+	 * @return The number of shows that have been marked as unwatched.
+	 */
+	suspend fun markAllAsUnwatched(collection: ShowCollection): Int = withContext(Dispatchers.IO) {
+		val markedCount = updateAllFoundShows(collection) { show ->
+			// shows that are not stored locally cannot be watched
+			mediathekRepository.resetPlaybackPositionIfPlayed(show.apiId) > 0
+		}
+
+		// update the cached counters
+		database.showCollectionDao().getFromIdSync(collection.id)?.let { refreshCount(it) }
+
+		markedCount
+	}
+
+	/**
+	 * Pages through all mediathek results of the given collection and calls [update] for
+	 * every show. Excluded shows and duplicates are skipped.
+	 *
+	 * @return The number of shows for which [update] returned true.
+	 */
+	private suspend fun updateAllFoundShows(
+		collection: ShowCollection,
+		update: suspend (MediathekShow) -> Boolean,
+	): Int {
+		val handledApiIds = mutableSetOf<String>()
+		var changedCount = 0
+		var offset = 0
+
+		while (offset < MAX_PROCESSED_SHOWS) {
+			val page = searchMediathek(
+				searchQuery = collection.searchQuery,
+				size = PAGE_SIZE,
+				offset = offset
+			)
+
+			if (page.isEmpty()) {
+				break
+			}
+
+			for (show in page) {
+				if (collection.isExcluded(show) || !handledApiIds.add(show.apiId)) {
+					continue
+				}
+
+				try {
+					if (update(show)) {
+						changedCount++
+					}
+				} catch (e: Exception) {
+					Timber.e(e, "Could not update show ${show.apiId}")
+				}
+			}
+
+			if (page.size < PAGE_SIZE) {
+				// last page reached
+				break
+			}
+
+			offset += page.size
+		}
+
+		return changedCount
 	}
 
 	/**
@@ -211,16 +275,19 @@ class ShowCollectionRepository(
 			?.queryInfo
 			?.totalResults
 
-	private suspend fun searchMediathek(searchQuery: String, limit: Int) =
-		mediathekApi
-			.listShows(
-				QueryRequest().apply {
-					size = limit
-					offset = 0
-					setQueryString(searchQuery)
-				}
-			)
-			.result
-			?.results
-			?: emptyList()
+	private suspend fun searchMediathek(
+		searchQuery: String,
+		size: Int,
+		offset: Int = 0,
+	) = mediathekApi
+		.listShows(
+			QueryRequest().apply {
+				this.size = size
+				this.offset = offset
+				setQueryString(searchQuery)
+			}
+		)
+		.result
+		?.results
+		?: emptyList()
 }

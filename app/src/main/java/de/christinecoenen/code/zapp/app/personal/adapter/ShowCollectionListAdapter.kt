@@ -72,13 +72,11 @@ class ShowCollectionListAdapter(
 			if (hasCount) {
 				binding.count.text = binding.root.context.getString(
 					R.string.fragment_series_item_count,
-					collection.unwatchedCount,
-					collection.totalCount
+					collection.unwatchedCount
 				)
 				binding.count.contentDescription = binding.root.context.getString(
 					R.string.fragment_series_item_count_content_description,
-					collection.unwatchedCount,
-					collection.totalCount
+					collection.unwatchedCount
 				)
 			}
 

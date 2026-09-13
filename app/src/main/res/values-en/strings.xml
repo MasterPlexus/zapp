@@ -97,12 +97,13 @@
 	<string name="fragment_series_no_results">no collections created</string>
 	<string name="fragment_series_item_query">Search: %1$s</string>
 	<string name="fragment_series_item_query_excluded">Search: %1$s · without: %2$s</string>
-	<string name="fragment_series_item_count">%1$d/%2$d</string>
-	<string name="fragment_series_item_count_content_description">%1$d of %2$d shows unwatched</string>
+	<string name="fragment_series_item_count">%1$d</string>
+	<string name="fragment_series_item_count_content_description">%1$d shows unwatched</string>
 	<string name="action_add_collection">Create collection</string>
 	<string name="action_edit_collection">Edit collection</string>
 	<string name="action_delete_collection">Delete collection</string>
 	<string name="action_mark_all_watched">Mark all as watched</string>
+	<string name="action_mark_all_unwatched">Mark all as unwatched</string>
 	<string name="dialog_series_create_title">Create collection</string>
 	<string name="dialog_series_edit_title">Edit collection</string>
 	<string name="dialog_series_name_label">Name</string>
@@ -113,6 +114,8 @@
 	<string name="dialog_series_delete_text">The collection “%1$s” will be deleted.</string>
 	<string name="fragment_series_mark_all_watched_success">Marked %1$d shows as watched</string>
 	<string name="fragment_series_mark_all_watched_none">No shows marked as watched</string>
+	<string name="fragment_series_mark_all_unwatched_success">Marked %1$d shows as unwatched</string>
+	<string name="fragment_series_mark_all_unwatched_none">No shows marked as unwatched</string>
 	<string name="error_series_missing_name">Please enter a name</string>
 	<string name="error_series_missing_query">Please enter a search term</string>
 

@@ -15,8 +15,8 @@ class SeriesViewModel(
 
 	val collectionsFlow = showCollectionRepository.getAllWithCounts()
 
-	private val _markResult = MutableStateFlow<Int?>(null)
-	val markResult: LiveData<Int?> = _markResult.asLiveData()
+	private val _markResult = MutableStateFlow<CollectionMarkResult?>(null)
+	val markResult: LiveData<CollectionMarkResult?> = _markResult.asLiveData()
 
 	/**
 	 * Recalculates the unwatched/total counters, e.g. when the overview becomes visible again.
@@ -42,7 +42,22 @@ class SeriesViewModel(
 	 */
 	fun markAllAsWatched(collection: ShowCollection) {
 		viewModelScope.launch {
-			_markResult.value = showCollectionRepository.markAllAsWatched(collection)
+			_markResult.value = CollectionMarkResult(
+				CollectionMarkResult.Action.WATCHED,
+				showCollectionRepository.markAllAsWatched(collection)
+			)
+		}
+	}
+
+	/**
+	 * Marks all shows found for the collection as unwatched.
+	 */
+	fun markAllAsUnwatched(collection: ShowCollection) {
+		viewModelScope.launch {
+			_markResult.value = CollectionMarkResult(
+				CollectionMarkResult.Action.UNWATCHED,
+				showCollectionRepository.markAllAsUnwatched(collection)
+			)
 		}
 	}
 }

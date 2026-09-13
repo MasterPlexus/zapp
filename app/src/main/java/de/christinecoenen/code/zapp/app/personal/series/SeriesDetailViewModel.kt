@@ -51,8 +51,8 @@ class SeriesDetailViewModel(
 	private val _collection = MutableStateFlow<ShowCollection?>(null)
 	val collection: LiveData<ShowCollection?> = _collection.asLiveData()
 
-	private val _markResult = MutableStateFlow<Int?>(null)
-	val markResult: LiveData<Int?> = _markResult.asLiveData()
+	private val _markResult = MutableStateFlow<CollectionMarkResult?>(null)
+	val markResult: LiveData<CollectionMarkResult?> = _markResult.asLiveData()
 
 	val showList = showCollectionRepository
 		.getFromId(collectionId)
@@ -98,7 +98,22 @@ class SeriesDetailViewModel(
 			val collection = showCollectionRepository.getFromId(collectionId).firstOrNull()
 				?: return@launch
 
-			_markResult.value = showCollectionRepository.markAllAsWatched(collection)
+			_markResult.value = CollectionMarkResult(
+				CollectionMarkResult.Action.WATCHED,
+				showCollectionRepository.markAllAsWatched(collection)
+			)
+		}
+	}
+
+	fun markAllAsUnwatched() {
+		viewModelScope.launch {
+			val collection = showCollectionRepository.getFromId(collectionId).firstOrNull()
+				?: return@launch
+
+			_markResult.value = CollectionMarkResult(
+				CollectionMarkResult.Action.UNWATCHED,
+				showCollectionRepository.markAllAsUnwatched(collection)
+			)
 		}
 	}
 }

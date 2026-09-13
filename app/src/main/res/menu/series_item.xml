@@ -13,6 +13,11 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/menu_mark_all_unwatched"
+		android:title="@string/action_mark_all_unwatched"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/menu_delete_collection"
 		android:title="@string/action_delete_collection"
 		app:showAsAction="never" />

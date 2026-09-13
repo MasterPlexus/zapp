@@ -7,4 +7,9 @@
 		android:title="@string/action_mark_all_watched"
 		app:showAsAction="never" />
 
+	<item
+		android:id="@+id/menu_mark_all_unwatched"
+		android:title="@string/action_mark_all_unwatched"
+		app:showAsAction="never" />
+
 </menu>

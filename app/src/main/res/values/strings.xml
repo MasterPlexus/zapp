@@ -97,12 +97,13 @@
 	<string name="fragment_series_no_results">keine Kollektionen angelegt</string>
 	<string name="fragment_series_item_query">Suche: %1$s</string>
 	<string name="fragment_series_item_query_excluded">Suche: %1$s · ohne: %2$s</string>
-	<string name="fragment_series_item_count">%1$d/%2$d</string>
-	<string name="fragment_series_item_count_content_description">%1$d von %2$d Sendungen ungesehen</string>
+	<string name="fragment_series_item_count">%1$d</string>
+	<string name="fragment_series_item_count_content_description">%1$d Sendungen ungesehen</string>
 	<string name="action_add_collection">Kollektion anlegen</string>
 	<string name="action_edit_collection">Kollektion bearbeiten</string>
 	<string name="action_delete_collection">Kollektion löschen</string>
 	<string name="action_mark_all_watched">Alle als gesehen markieren</string>
+	<string name="action_mark_all_unwatched">Alle als ungesehen markieren</string>
 	<string name="dialog_series_create_title">Kollektion anlegen</string>
 	<string name="dialog_series_edit_title">Kollektion bearbeiten</string>
 	<string name="dialog_series_name_label">Name</string>
@@ -113,6 +114,8 @@
 	<string name="dialog_series_delete_text">Die Kollektion „%1$s“ wird gelöscht.</string>
 	<string name="fragment_series_mark_all_watched_success">%1$d Sendungen als gesehen markiert</string>
 	<string name="fragment_series_mark_all_watched_none">Keine Sendungen als gesehen markiert</string>
+	<string name="fragment_series_mark_all_unwatched_success">%1$d Sendungen als ungesehen markiert</string>
+	<string name="fragment_series_mark_all_unwatched_none">Keine Sendungen als ungesehen markiert</string>
 	<string name="error_series_missing_name">Bitte einen Namen angeben</string>
 	<string name="error_series_missing_query">Bitte einen Suchbegriff angeben</string>
 

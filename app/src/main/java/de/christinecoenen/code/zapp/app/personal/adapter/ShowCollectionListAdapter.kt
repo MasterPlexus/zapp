@@ -54,10 +54,33 @@ class ShowCollectionListAdapter(
 
 		fun bind(collection: ShowCollection, listener: Listener) {
 			binding.name.text = collection.name
-			binding.query.text = binding.root.context.getString(
-				R.string.fragment_series_item_query,
-				collection.searchQuery
-			)
+			binding.query.text = if (collection.excludeTerms.isBlank()) {
+				binding.root.context.getString(
+					R.string.fragment_series_item_query,
+					collection.searchQuery
+				)
+			} else {
+				binding.root.context.getString(
+					R.string.fragment_series_item_query_excluded,
+					collection.searchQuery,
+					collection.excludeTerms
+				)
+			}
+
+			val hasCount = collection.countUpdatedAt != null
+			binding.count.isVisible = hasCount
+			if (hasCount) {
+				binding.count.text = binding.root.context.getString(
+					R.string.fragment_series_item_count,
+					collection.unwatchedCount,
+					collection.totalCount
+				)
+				binding.count.contentDescription = binding.root.context.getString(
+					R.string.fragment_series_item_count_content_description,
+					collection.unwatchedCount,
+					collection.totalCount
+				)
+			}
 
 			binding.menu.isVisible = showMenu
 

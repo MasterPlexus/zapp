@@ -31,10 +31,24 @@
 		android:ellipsize="end"
 		android:maxLines="1"
 		android:textAppearance="?textAppearanceTitleMedium"
-		app:layout_constraintEnd_toStartOf="@id/menu"
+		app:layout_constraintEnd_toStartOf="@id/count"
 		app:layout_constraintStart_toEndOf="@id/icon"
 		app:layout_constraintTop_toTopOf="parent"
 		tools:text="Tatort" />
+
+	<com.google.android.material.textview.MaterialTextView
+		android:id="@+id/count"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="8dp"
+		android:textAppearance="?textAppearanceLabelMedium"
+		android:visibility="gone"
+		app:layout_constraintBottom_toBottomOf="@id/name"
+		app:layout_constraintEnd_toStartOf="@id/menu"
+		app:layout_constraintStart_toEndOf="@id/name"
+		app:layout_constraintTop_toTopOf="@id/name"
+		tools:text="3/12"
+		tools:visibility="visible" />
 
 	<com.google.android.material.textview.MaterialTextView
 		android:id="@+id/query"

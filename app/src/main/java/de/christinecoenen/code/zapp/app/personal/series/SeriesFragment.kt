@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -35,6 +36,8 @@ class SeriesFragment : Fragment(), MenuProvider {
 	private val viewModel: SeriesViewModel by viewModel()
 
 	private lateinit var adapter: ShowCollectionListAdapter
+
+	private var lastMarkResult: Int? = null
 
 	private val collectionClickListener = object : ShowCollectionListAdapter.Listener {
 		override fun onCollectionClicked(collection: ShowCollection) {
@@ -86,9 +89,35 @@ class SeriesFragment : Fragment(), MenuProvider {
 				bundle.getInt(EditSeriesDialog.RESULT_ID),
 				bundle.getString(EditSeriesDialog.RESULT_NAME).orEmpty(),
 				bundle.getString(EditSeriesDialog.RESULT_QUERY).orEmpty(),
-				bundle.getBoolean(EditSeriesDialog.RESULT_MARK_ALL_AS_WATCHED)
+				bundle.getString(EditSeriesDialog.RESULT_EXCLUDE_TERMS).orEmpty()
 			)
 		}
+
+		viewModel.markResult.observe(viewLifecycleOwner) { markedCount ->
+			if (markedCount == null || markedCount == lastMarkResult) {
+				return@observe
+			}
+
+			lastMarkResult = markedCount
+
+			val messageResId = if (markedCount > 0)
+				R.string.fragment_series_mark_all_watched_success
+			else
+				R.string.fragment_series_mark_all_watched_none
+
+			Toast.makeText(
+				requireContext(),
+				getString(messageResId, markedCount),
+				Toast.LENGTH_SHORT
+			).show()
+		}
+	}
+
+	override fun onResume() {
+		super.onResume()
+
+		// keep the unwatched/total counters up to date
+		viewModel.refreshCounts()
 	}
 
 	override fun onDestroyView() {
@@ -121,6 +150,11 @@ class SeriesFragment : Fragment(), MenuProvider {
 					R.id.menu_edit_collection -> {
 						EditSeriesDialog.newInstance(collection)
 							.show(parentFragmentManager, null)
+						true
+					}
+
+					R.id.menu_mark_all_watched -> {
+						viewModel.markAllAsWatched(collection)
 						true
 					}
 

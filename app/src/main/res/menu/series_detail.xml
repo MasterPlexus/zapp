@@ -4,8 +4,7 @@
 
 	<item
 		android:id="@+id/menu_mark_all_watched"
-		android:icon="@drawable/ic_outline_play_circle_24"
 		android:title="@string/action_mark_all_watched"
-		app:showAsAction="ifRoom" />
+		app:showAsAction="never" />
 
 </menu>

@@ -22,12 +22,12 @@ class EditSeriesDialog : AppCompatDialogFragment() {
 		const val RESULT_ID = "RESULT_SERIES_ID"
 		const val RESULT_NAME = "RESULT_SERIES_NAME"
 		const val RESULT_QUERY = "RESULT_SERIES_QUERY"
-		const val RESULT_MARK_ALL_AS_WATCHED = "RESULT_SERIES_MARK_ALL_AS_WATCHED"
+		const val RESULT_EXCLUDE_TERMS = "RESULT_SERIES_EXCLUDE_TERMS"
 
 		private const val ARG_ID = "ARG_SERIES_ID"
 		private const val ARG_NAME = "ARG_SERIES_NAME"
 		private const val ARG_QUERY = "ARG_SERIES_QUERY"
-		private const val ARG_MARK_ALL_AS_WATCHED = "ARG_SERIES_MARK_ALL_AS_WATCHED"
+		private const val ARG_EXCLUDE_TERMS = "ARG_SERIES_EXCLUDE_TERMS"
 
 		/**
 		 * @param collection Collection to edit or null to create a new one.
@@ -39,7 +39,7 @@ class EditSeriesDialog : AppCompatDialogFragment() {
 					ARG_ID to (collection?.id ?: 0),
 					ARG_NAME to (collection?.name.orEmpty()),
 					ARG_QUERY to (collection?.searchQuery.orEmpty()),
-					ARG_MARK_ALL_AS_WATCHED to (collection?.markAllAsWatched ?: false)
+					ARG_EXCLUDE_TERMS to (collection?.excludeTerms.orEmpty())
 				)
 			}
 		}
@@ -52,7 +52,7 @@ class EditSeriesDialog : AppCompatDialogFragment() {
 
 		binding.name.setText(args.getString(ARG_NAME))
 		binding.query.setText(args.getString(ARG_QUERY))
-		binding.markAllAsWatched.isChecked = args.getBoolean(ARG_MARK_ALL_AS_WATCHED)
+		binding.excludeTerms.setText(args.getString(ARG_EXCLUDE_TERMS))
 
 		val dialog = MaterialAlertDialogBuilder(requireActivity())
 			.setTitle(
@@ -68,6 +68,7 @@ class EditSeriesDialog : AppCompatDialogFragment() {
 			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
 				val name = binding.name.text?.toString().orEmpty().trim()
 				val searchQuery = binding.query.text?.toString().orEmpty().trim()
+				val excludeTerms = binding.excludeTerms.text?.toString().orEmpty().trim()
 
 				if (name.isEmpty()) {
 					binding.nameLayout.error = getString(R.string.error_series_missing_name)
@@ -87,7 +88,7 @@ class EditSeriesDialog : AppCompatDialogFragment() {
 						RESULT_ID to collectionId,
 						RESULT_NAME to name,
 						RESULT_QUERY to searchQuery,
-						RESULT_MARK_ALL_AS_WATCHED to binding.markAllAsWatched.isChecked
+						RESULT_EXCLUDE_TERMS to excludeTerms
 					)
 				)
 				dismiss()

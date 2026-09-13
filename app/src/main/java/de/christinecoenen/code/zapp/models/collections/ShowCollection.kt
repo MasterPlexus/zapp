@@ -2,6 +2,7 @@ package de.christinecoenen.code.zapp.models.collections
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import de.christinecoenen.code.zapp.models.shows.MediathekShow
 import org.joda.time.DateTime
 
 /**
@@ -21,9 +22,45 @@ data class ShowCollection(
 	var searchQuery: String,
 
 	/**
-	 * When enabled, all shows found for this collection are marked as watched.
+	 * Comma separated terms. Shows matching one of these terms are excluded from
+	 * the collection and will not be shown.
 	 */
-	var markAllAsWatched: Boolean = false,
+	var excludeTerms: String = "",
+
+	/**
+	 * Total number of shows found for [searchQuery] in the mediatheks.
+	 */
+	var totalCount: Int = 0,
+
+	/**
+	 * Number of found shows that have not been watched yet.
+	 */
+	var unwatchedCount: Int = 0,
+
+	/**
+	 * Time the cached counts have been calculated for the last time - null if never.
+	 */
+	var countUpdatedAt: DateTime? = null,
 
 	var createdAt: DateTime = DateTime.now()
 )
+
+/**
+ * The single exclusion terms contained in [ShowCollection.excludeTerms].
+ */
+val ShowCollection.excludedSearchTerms: List<String>
+	get() = excludeTerms
+		.split(',', ';', '\n')
+		.map { it.trim() }
+		.filter { it.isNotEmpty() }
+
+/**
+ * Whether the given show matches one of the collection's exclusion terms and
+ * should therefore not be shown.
+ */
+fun ShowCollection.isExcluded(show: MediathekShow): Boolean {
+	return excludedSearchTerms.any { term ->
+		show.title.contains(term, ignoreCase = true) ||
+			show.topic.contains(term, ignoreCase = true)
+	}
+}

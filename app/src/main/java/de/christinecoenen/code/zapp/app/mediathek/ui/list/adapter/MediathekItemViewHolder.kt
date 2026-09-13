@@ -67,6 +67,7 @@ class MediathekItemViewHolder(
 		binding.viewingProgress.isVisible = false
 		binding.viewingProgressPercent.isVisible = false
 
+		binding.root.isVisible = true
 		binding.root.alpha = 1f
 
 		binding.root.setBackgroundColor(bgColorDefault)
@@ -177,8 +178,25 @@ class MediathekItemViewHolder(
 		val isWatched = percent >= 1f
 		val showPercentage = settingsRepository.showProgressPercentage
 
-		// fade out shows that are marked as watched
-		binding.root.alpha = if (isWatched) settingsRepository.watchedShowAlpha else 1f
+		// fade out or hide shows that are marked as watched
+		val hideWatched = isWatched &&
+			settingsRepository.watchedShowDisplay == SettingsRepository.WatchedShowDisplay.HIDE
+
+		when {
+			hideWatched -> {
+				binding.root.isVisible = false
+			}
+
+			isWatched -> {
+				binding.root.isVisible = true
+				binding.root.alpha = settingsRepository.watchedShowAlpha
+			}
+
+			else -> {
+				binding.root.isVisible = true
+				binding.root.alpha = 1f
+			}
+		}
 
 		binding.viewingStatus.isVisible = hasProgress
 		binding.viewingStatusIcon.isVisible = hasProgress && !showPercentage

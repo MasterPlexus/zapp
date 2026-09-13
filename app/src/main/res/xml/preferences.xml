@@ -40,6 +40,14 @@
 			android:summary="@string/pref_show_progress_percentage_summary"
 			android:title="@string/pref_show_progress_percentage_title" />
 
+		<ListPreference
+			android:defaultValue="fade"
+			android:entries="@array/pref_watched_show_mode_names"
+			android:entryValues="@array/pref_watched_show_mode_values"
+			android:key="@string/pref_key_watched_show_mode"
+			android:title="@string/pref_watched_show_mode_title"
+			app:useSimpleSummaryProvider="true" />
+
 		<SeekBarPreference
 			android:defaultValue="40"
 			android:key="@string/pref_key_watched_show_fade"

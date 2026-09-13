@@ -14,7 +14,7 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 
 @Database(
 	entities = [PersistedMediathekShow::class, SearchQuery::class, ShowCollection::class],
-	version = 5,
+	version = 7,
 	autoMigrations = [],
 	exportSchema = true
 )
@@ -22,6 +22,29 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 abstract class Database : RoomDatabase() {
 
 	companion object {
+
+		/**
+		 * Replace the "mark all as watched" flag of collections with excluded search terms
+		 */
+		private val MIGRATION_6_7 = object : Migration(6, 7) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("ALTER TABLE ShowCollection RENAME TO ShowCollection_old")
+				db.execSQL("CREATE TABLE IF NOT EXISTS `ShowCollection` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `searchQuery` TEXT NOT NULL, `excludeTerms` TEXT NOT NULL, `totalCount` INTEGER NOT NULL, `unwatchedCount` INTEGER NOT NULL, `countUpdatedAt` INTEGER, `createdAt` INTEGER NOT NULL)")
+				db.execSQL("INSERT INTO ShowCollection (id, name, searchQuery, excludeTerms, totalCount, unwatchedCount, countUpdatedAt, createdAt) SELECT id, name, searchQuery, '', totalCount, unwatchedCount, countUpdatedAt, createdAt FROM ShowCollection_old")
+				db.execSQL("DROP TABLE ShowCollection_old")
+			}
+		}
+
+		/**
+		 * Add counters for show collections
+		 */
+		private val MIGRATION_5_6 = object : Migration(5, 6) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("ALTER TABLE ShowCollection ADD COLUMN totalCount INTEGER NOT NULL DEFAULT 0")
+				db.execSQL("ALTER TABLE ShowCollection ADD COLUMN unwatchedCount INTEGER NOT NULL DEFAULT 0")
+				db.execSQL("ALTER TABLE ShowCollection ADD COLUMN countUpdatedAt INTEGER DEFAULT NULL")
+			}
+		}
 
 		/**
 		 * Add series collections feature
@@ -95,7 +118,9 @@ abstract class Database : RoomDatabase() {
 					MIGRATION_1_2,
 					MIGRATION_2_3,
 					MIGRATION_3_4,
-					MIGRATION_4_5
+					MIGRATION_4_5,
+					MIGRATION_5_6,
+					MIGRATION_6_7
 				)
 				.build()
 		}

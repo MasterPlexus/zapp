@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
 import kotlinx.coroutines.flow.Flow
+import org.joda.time.DateTime
 
 @Dao
 interface ShowCollectionDao {
@@ -28,6 +29,14 @@ interface ShowCollectionDao {
 
 	@Update
 	suspend fun update(collection: ShowCollection)
+
+	@Query("UPDATE ShowCollection SET totalCount=:totalCount, unwatchedCount=:unwatchedCount, countUpdatedAt=:updatedAt WHERE id=:id")
+	suspend fun updateCounts(
+		id: Int,
+		totalCount: Int,
+		unwatchedCount: Int,
+		updatedAt: DateTime
+	)
 
 	@Delete
 	suspend fun delete(collection: ShowCollection)

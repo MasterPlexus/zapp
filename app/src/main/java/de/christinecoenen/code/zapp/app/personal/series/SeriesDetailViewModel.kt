@@ -9,6 +9,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import androidx.paging.map
 import de.christinecoenen.code.zapp.app.mediathek.api.IMediathekApiService
 import de.christinecoenen.code.zapp.app.mediathek.api.MediathekPagingSource
@@ -16,6 +17,7 @@ import de.christinecoenen.code.zapp.app.mediathek.api.request.QueryRequest
 import de.christinecoenen.code.zapp.app.mediathek.api.result.QueryInfoResult
 import de.christinecoenen.code.zapp.app.mediathek.ui.list.adapter.UiModel
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
+import de.christinecoenen.code.zapp.models.collections.isExcluded
 import de.christinecoenen.code.zapp.models.shows.MediathekShow
 import de.christinecoenen.code.zapp.repositories.ShowCollectionRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,7 +57,7 @@ class SeriesDetailViewModel(
 	val showList = showCollectionRepository
 		.getFromId(collectionId)
 		.filterNotNull()
-		.distinctUntilChangedBy { it.searchQuery }
+		.distinctUntilChangedBy { it.searchQuery to it.excludeTerms }
 		.flatMapLatest { collection ->
 			Pager(pagingConfig) {
 				MediathekPagingSource(
@@ -67,6 +69,9 @@ class SeriesDetailViewModel(
 					queryInfoResult
 				)
 			}.flow
+				.map<PagingData<MediathekShow>, PagingData<MediathekShow>> { pagingData ->
+					pagingData.filter { show -> !collection.isExcluded(show) }
+				}
 		}
 		.map<PagingData<MediathekShow>, PagingData<UiModel>> { pagingData ->
 			pagingData.map { show ->
@@ -81,23 +86,10 @@ class SeriesDetailViewModel(
 
 	init {
 		viewModelScope.launch {
-			var autoMarkChecked = false
-
 			showCollectionRepository
 				.getFromId(collectionId)
 				.filterNotNull()
-				.collect { collection ->
-					_collection.value = collection
-
-					// automatically mark all finds as watched when the option is enabled
-					if (!autoMarkChecked) {
-						autoMarkChecked = true
-						if (collection.markAllAsWatched) {
-							_markResult.value =
-								showCollectionRepository.markAllAsWatched(collection)
-						}
-					}
-				}
+				.collect { _collection.value = it }
 		}
 	}
 

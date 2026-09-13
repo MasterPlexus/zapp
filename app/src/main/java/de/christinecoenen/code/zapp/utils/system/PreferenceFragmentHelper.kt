@@ -10,6 +10,7 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.Preference.OnPreferenceClickListener
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SeekBarPreference
 import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.color.DynamicColors
 import com.jakewharton.processphoenix.ProcessPhoenix
@@ -37,6 +38,9 @@ class PreferenceFragmentHelper(
 		private const val PREF_LANGUAGE = "pref_key_language"
 		private const val PREF_CHANNEL_SELECTION = "pref_key_channel_selection"
 		private const val PREF_DELETE_STARTED_SHOWS = "pref_key_delete_started_shows"
+		private const val PREF_WATCHED_SHOW_MODE = "pref_key_watched_show_mode"
+		private const val PREF_WATCHED_SHOW_FADE = "pref_key_watched_show_fade"
+		private const val WATCHED_SHOW_MODE_HIDE = "hide"
 
 	}
 
@@ -46,6 +50,8 @@ class PreferenceFragmentHelper(
 	private var languagePreference: ListPreference? = null
 	private var channelSelectionPreference: Preference? = null
 	private var deleteStartedShowsPreference: Preference? = null
+	private var watchedShowModePreference: ListPreference? = null
+	private var watchedShowFadePreference: SeekBarPreference? = null
 
 	private var channelSelectionClickListener: OnPreferenceClickListener? = null
 
@@ -91,6 +97,11 @@ class PreferenceFragmentHelper(
 		true
 	}
 
+	private val watchedShowModeChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+		updateWatchedShowFadePreferenceVisibility(newValue as String?)
+		true
+	}
+
 	init {
 		preferenceFragment.lifecycle.addObserver(this)
 	}
@@ -104,6 +115,8 @@ class PreferenceFragmentHelper(
 		languagePreference = preferenceScreen.findPreference(PREF_LANGUAGE)
 		channelSelectionPreference = preferenceScreen.findPreference(PREF_CHANNEL_SELECTION)
 		deleteStartedShowsPreference = preferenceScreen.findPreference(PREF_DELETE_STARTED_SHOWS)
+		watchedShowModePreference = preferenceScreen.findPreference(PREF_WATCHED_SHOW_MODE)
+		watchedShowFadePreference = preferenceScreen.findPreference(PREF_WATCHED_SHOW_FADE)
 
 		languagePreference?.let {
 			val languages =
@@ -119,6 +132,8 @@ class PreferenceFragmentHelper(
 		}
 
 		this.channelSelectionClickListener = channelSelectionClickListener
+
+		updateWatchedShowFadePreferenceVisibility(watchedShowModePreference?.value)
 	}
 
 	fun destroy() {
@@ -134,6 +149,7 @@ class PreferenceFragmentHelper(
 		languagePreference?.onPreferenceChangeListener = languageChangeListener
 		channelSelectionPreference?.onPreferenceClickListener = channelSelectionClickListener
 		deleteStartedShowsPreference?.onPreferenceClickListener = deleteStartedShowsClickListener
+		watchedShowModePreference?.onPreferenceChangeListener = watchedShowModeChangeListener
 	}
 
 	override fun onDestroy(owner: LifecycleOwner) {
@@ -145,5 +161,10 @@ class PreferenceFragmentHelper(
 		languagePreference?.onPreferenceChangeListener = null
 		channelSelectionPreference?.onPreferenceClickListener = null
 		deleteStartedShowsPreference?.onPreferenceClickListener = null
+		watchedShowModePreference?.onPreferenceChangeListener = null
+	}
+
+	private fun updateWatchedShowFadePreferenceVisibility(mode: String?) {
+		watchedShowFadePreference?.isVisible = mode != WATCHED_SHOW_MODE_HIDE
 	}
 }

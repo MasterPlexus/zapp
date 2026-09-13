@@ -17,6 +17,15 @@ class SettingsRepository(context: Context) {
 	companion object {
 		private const val DEFAULT_WATCHED_SHOW_FADE = 40
 		private const val MAX_WATCHED_SHOW_FADE = 80
+		private const val WATCHED_SHOW_MODE_HIDE = "hide"
+	}
+
+	/**
+	 * How shows that have been marked as watched are displayed in list overviews.
+	 */
+	enum class WatchedShowDisplay {
+		FADE,
+		HIDE
 	}
 
 	private val context = context.applicationContext
@@ -120,6 +129,21 @@ class SettingsRepository(context: Context) {
 			context.getString(R.string.pref_key_show_progress_percentage),
 			false
 		)
+
+	/**
+	 * Whether shows that are marked as watched should be faded out or hidden
+	 * completely in list overviews.
+	 */
+	val watchedShowDisplay: WatchedShowDisplay
+		get() = when (
+			preferences.getString(
+				context.getString(R.string.pref_key_watched_show_mode),
+				null
+			)
+		) {
+			WATCHED_SHOW_MODE_HIDE -> WatchedShowDisplay.HIDE
+			else -> WatchedShowDisplay.FADE
+		}
 
 	/**
 	 * Alpha value (1f = fully visible) that is applied to shows which have been

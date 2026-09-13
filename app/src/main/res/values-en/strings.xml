@@ -96,6 +96,9 @@
 	<!-- series -->
 	<string name="fragment_series_no_results">no collections created</string>
 	<string name="fragment_series_item_query">Search: %1$s</string>
+	<string name="fragment_series_item_query_excluded">Search: %1$s · without: %2$s</string>
+	<string name="fragment_series_item_count">%1$d/%2$d</string>
+	<string name="fragment_series_item_count_content_description">%1$d of %2$d shows unwatched</string>
 	<string name="action_add_collection">Create collection</string>
 	<string name="action_edit_collection">Edit collection</string>
 	<string name="action_delete_collection">Delete collection</string>
@@ -104,8 +107,8 @@
 	<string name="dialog_series_edit_title">Edit collection</string>
 	<string name="dialog_series_name_label">Name</string>
 	<string name="dialog_series_query_label">Search term</string>
-	<string name="dialog_series_mark_all_watched">Mark all finds as watched</string>
-	<string name="dialog_series_mark_all_watched_summary">All shows found for this collection will be marked as watched.</string>
+	<string name="dialog_series_exclude_label">Exclude</string>
+	<string name="dialog_series_exclude_helper">Separate terms with commas. Shows containing one of these terms in their title or topic will not be shown.</string>
 	<string name="dialog_series_delete_title">Delete collection?</string>
 	<string name="dialog_series_delete_text">The collection “%1$s” will be deleted.</string>
 	<string name="fragment_series_mark_all_watched_success">Marked %1$d shows as watched</string>
@@ -207,6 +210,10 @@
 
 	<string name="pref_watched_show_fade_title">Fade watched shows</string>
 	<string name="pref_watched_show_fade_summary">How strongly shows marked as watched are faded out.</string>
+
+	<string name="pref_watched_show_mode_title">Watched shows</string>
+	<string name="pref_watched_show_mode_fade">Fade out</string>
+	<string name="pref_watched_show_mode_hide">Hide</string>
 
 	<string name="pref_dialog_confirm_reset_playback_position_title">Reset started shows?</string>
 	<string name="pref_dialog_confirm_reset_playback_position_text">Deletes the progress of all shows you started or finished watching. No downloads will be deleted.</string>

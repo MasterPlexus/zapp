@@ -14,6 +14,6 @@ class PersonalViewModel(
 	val continueWatchingFlow = mediathekRepository.getStarted(2)
 	val bookmarkFlow = mediathekRepository.getBookmarked(2)
 
-	val seriesFlow = showCollectionRepository.getRecent(2)
+	val seriesFlow = showCollectionRepository.getRecentWithCounts(2)
 
 }

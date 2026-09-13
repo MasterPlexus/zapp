@@ -96,6 +96,9 @@
 	<!-- series -->
 	<string name="fragment_series_no_results">keine Kollektionen angelegt</string>
 	<string name="fragment_series_item_query">Suche: %1$s</string>
+	<string name="fragment_series_item_query_excluded">Suche: %1$s · ohne: %2$s</string>
+	<string name="fragment_series_item_count">%1$d/%2$d</string>
+	<string name="fragment_series_item_count_content_description">%1$d von %2$d Sendungen ungesehen</string>
 	<string name="action_add_collection">Kollektion anlegen</string>
 	<string name="action_edit_collection">Kollektion bearbeiten</string>
 	<string name="action_delete_collection">Kollektion löschen</string>
@@ -104,8 +107,8 @@
 	<string name="dialog_series_edit_title">Kollektion bearbeiten</string>
 	<string name="dialog_series_name_label">Name</string>
 	<string name="dialog_series_query_label">Suchbegriff</string>
-	<string name="dialog_series_mark_all_watched">Alle Funde als gesehen markieren</string>
-	<string name="dialog_series_mark_all_watched_summary">Alle Sendungen, die für diese Kollektion gefunden werden, werden als gesehen markiert.</string>
+	<string name="dialog_series_exclude_label">Ausschließen</string>
+	<string name="dialog_series_exclude_helper">Begriffe mit Komma trennen. Sendungen, die einen dieser Begriffe in Titel oder Thema enthalten, werden nicht angezeigt.</string>
 	<string name="dialog_series_delete_title">Kollektion löschen?</string>
 	<string name="dialog_series_delete_text">Die Kollektion „%1$s“ wird gelöscht.</string>
 	<string name="fragment_series_mark_all_watched_success">%1$d Sendungen als gesehen markiert</string>
@@ -207,6 +210,10 @@
 
 	<string name="pref_watched_show_fade_title">Verblassen gesehener Sendungen</string>
 	<string name="pref_watched_show_fade_summary">Wie stark als gesehen markierte Sendungen verblasst dargestellt werden.</string>
+
+	<string name="pref_watched_show_mode_title">Gesehene Sendungen</string>
+	<string name="pref_watched_show_mode_fade">Verblassen</string>
+	<string name="pref_watched_show_mode_hide">Ausblenden</string>
 
 	<string name="pref_dialog_confirm_reset_playback_position_title">Begonnene Sendungen zurücksetzen?</string>
 	<string name="pref_dialog_confirm_reset_playback_position_text">Löscht den Fortschritt von allen begonnenen oder angesehenen Sendungen. Es werden keine Downloads gelöscht.</string>

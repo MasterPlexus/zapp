@@ -1,26 +1,48 @@
 package de.christinecoenen.code.zapp.app.personal.series
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
 import de.christinecoenen.code.zapp.repositories.ShowCollectionRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class SeriesViewModel(
 	private val showCollectionRepository: ShowCollectionRepository
 ) : ViewModel() {
 
-	val collectionsFlow = showCollectionRepository.getAll()
+	val collectionsFlow = showCollectionRepository.getAllWithCounts()
 
-	fun save(id: Int, name: String, searchQuery: String, markAllAsWatched: Boolean) {
+	private val _markResult = MutableStateFlow<Int?>(null)
+	val markResult: LiveData<Int?> = _markResult.asLiveData()
+
+	/**
+	 * Recalculates the unwatched/total counters, e.g. when the overview becomes visible again.
+	 */
+	fun refreshCounts() {
+		showCollectionRepository.requestCountRefresh()
+	}
+
+	fun save(id: Int, name: String, searchQuery: String, excludeTerms: String) {
 		viewModelScope.launch {
-			showCollectionRepository.save(id, name, searchQuery, markAllAsWatched)
+			showCollectionRepository.save(id, name, searchQuery, excludeTerms)
 		}
 	}
 
 	fun delete(collection: ShowCollection) {
 		viewModelScope.launch {
 			showCollectionRepository.delete(collection)
+		}
+	}
+
+	/**
+	 * Marks all shows found for the collection as watched.
+	 */
+	fun markAllAsWatched(collection: ShowCollection) {
+		viewModelScope.launch {
+			_markResult.value = showCollectionRepository.markAllAsWatched(collection)
 		}
 	}
 }

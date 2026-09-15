@@ -116,6 +116,7 @@
 	<string name="fragment_series_mark_all_watched_none">Keine Sendungen als gesehen markiert</string>
 	<string name="fragment_series_mark_all_unwatched_success">%1$d Sendungen als ungesehen markiert</string>
 	<string name="fragment_series_mark_all_unwatched_none">Keine Sendungen als ungesehen markiert</string>
+	<string name="fragment_series_mark_all_failed">Markieren fehlgeschlagen. Bitte später erneut versuchen.</string>
 	<string name="error_series_missing_name">Bitte einen Namen angeben</string>
 	<string name="error_series_missing_query">Bitte einen Suchbegriff angeben</string>
 

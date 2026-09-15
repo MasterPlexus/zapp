@@ -170,7 +170,13 @@ interface MediathekShowDao {
 	@Query("UPDATE PersistedMediathekShow SET playbackPosition=(SELECT videoDuration WHERE apiId=:apiId), lastPlayedBackAt=:playedAt WHERE apiId=:apiId")
 	suspend fun markAsPlayed(apiId: String, playedAt: DateTime)
 
-	@Query("UPDATE PersistedMediathekShow SET playbackPosition=(SELECT videoDuration WHERE apiId=:apiId), lastPlayedBackAt=:playedAt WHERE apiId=:apiId AND videoDuration > 0 AND playbackPosition < videoDuration")
+	@Query(
+		"UPDATE PersistedMediathekShow SET " +
+			"playbackPosition = CASE WHEN videoDuration > 0 THEN videoDuration ELSE 1 END, " +
+			"videoDuration = CASE WHEN videoDuration > 0 THEN videoDuration ELSE 1 END, " +
+			"lastPlayedBackAt=:playedAt " +
+			"WHERE apiId=:apiId AND (videoDuration <= 0 OR playbackPosition < videoDuration)"
+	)
 	suspend fun markAsPlayedIfUnwatched(apiId: String, playedAt: DateTime): Int
 
 	@Query("UPDATE PersistedMediathekShow SET playbackPosition=0")
@@ -181,9 +187,6 @@ interface MediathekShowDao {
 
 	@Query("SELECT (CAST(playbackPosition AS FLOAT) / videoDuration) FROM PersistedMediathekShow WHERE apiId=:apiId")
 	fun getPlaybackPositionPercent(apiId: String): Flow<Float>
-
-	@Query("SELECT * FROM PersistedMediathekShow WHERE videoDuration > 0 AND playbackPosition >= videoDuration")
-	suspend fun getWatchedShows(): List<PersistedMediathekShow>
 
 	@Query("SELECT downloadedVideoPath FROM PersistedMediathekShow WHERE apiId=:apiId AND downloadStatus=4")
 	fun getCompletetlyDownloadedVideoPath(apiId: String): Flow<String?>

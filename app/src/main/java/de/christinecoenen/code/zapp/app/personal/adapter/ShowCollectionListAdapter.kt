@@ -12,7 +12,6 @@ import de.christinecoenen.code.zapp.databinding.PersonalFragmentSeriesItemBindin
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
 
 class ShowCollectionListAdapter(
-	private val showMenu: Boolean,
 	private val listener: Listener,
 ) : ListAdapter<ShowCollection, ShowCollectionListAdapter.ViewHolder>(DiffCallback) {
 
@@ -40,7 +39,7 @@ class ShowCollectionListAdapter(
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 		val layoutInflater = LayoutInflater.from(parent.context)
 		val binding = PersonalFragmentSeriesItemBinding.inflate(layoutInflater, parent, false)
-		return ViewHolder(binding, showMenu)
+		return ViewHolder(binding)
 	}
 
 	override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -49,7 +48,6 @@ class ShowCollectionListAdapter(
 
 	class ViewHolder(
 		private val binding: PersonalFragmentSeriesItemBinding,
-		private val showMenu: Boolean,
 	) : RecyclerView.ViewHolder(binding.root) {
 
 		fun bind(collection: ShowCollection, listener: Listener) {
@@ -79,8 +77,6 @@ class ShowCollectionListAdapter(
 					collection.unwatchedCount
 				)
 			}
-
-			binding.menu.isVisible = showMenu
 
 			binding.root.setOnClickListener {
 				listener.onCollectionClicked(collection)

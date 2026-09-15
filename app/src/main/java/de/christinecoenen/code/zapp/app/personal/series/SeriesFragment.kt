@@ -51,7 +51,7 @@ class SeriesFragment : Fragment(), MenuProvider {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		adapter = ShowCollectionListAdapter(true, collectionClickListener)
+		adapter = ShowCollectionListAdapter(collectionClickListener)
 	}
 
 	override fun onCreateView(
@@ -71,7 +71,7 @@ class SeriesFragment : Fragment(), MenuProvider {
 		launchOnCreated {
 			viewModel.collectionsFlow.collect { collections ->
 				adapter.submitList(collections)
-				noShowsBinding.group.isVisible = collections.isEmpty()
+				_noShowsBinding?.group?.isVisible = collections.isEmpty()
 			}
 		}
 
@@ -116,6 +116,9 @@ class SeriesFragment : Fragment(), MenuProvider {
 	}
 
 	override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+		// the series list is a main destination like the other tabs, so it shows the
+		// settings menu as well
+		menuInflater.inflate(R.menu.activity_main_toolbar, menu)
 		menuInflater.inflate(R.menu.series_list, menu)
 	}
 

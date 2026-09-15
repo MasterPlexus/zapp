@@ -96,7 +96,7 @@ class KoinModules {
 
 			viewModel { AbstractPlayerActivityViewModel(get()) }
 			viewModel { ChannelPlayerActivityViewModel(get()) }
-			viewModel { PersonalViewModel(get(), get()) }
+			viewModel { PersonalViewModel(get()) }
 			viewModel { BookmarksViewModel(get()) }
 			viewModel { ContinueWatchingViewModel(get()) }
 			viewModel { DownloadsViewModel(get()) }

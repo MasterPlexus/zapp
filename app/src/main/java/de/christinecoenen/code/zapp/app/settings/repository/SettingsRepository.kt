@@ -113,6 +113,7 @@ class SettingsRepository(context: Context) {
 		)) {
 			"mediathek" -> R.id.mediathekListFragment
 			"personal" -> R.id.personalFragment
+			"series" -> R.id.seriesFragment
 			else -> R.id.channelListFragment
 		}
 

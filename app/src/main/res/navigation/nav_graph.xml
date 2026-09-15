@@ -74,12 +74,6 @@
 		<action
 			android:id="@+id/to_bookmarksFragment"
 			app:destination="@id/bookmarksFragment" />
-		<action
-			android:id="@+id/to_seriesFragment"
-			app:destination="@id/seriesFragment" />
-		<action
-			android:id="@+id/to_seriesDetailFragment"
-			app:destination="@id/seriesDetailFragment" />
 	</fragment>
 	<fragment
 		android:id="@+id/seriesFragment"

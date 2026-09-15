@@ -154,6 +154,6 @@ class SeriesDetailFragment : Fragment(), MenuProvider, MediathekShowListItemList
 	}
 
 	private fun updateNoShowsVisibility() {
-		noShowsBinding.group.isVisible = showAdapter.itemCount == 0
+		_noShowsBinding?.group?.isVisible = showAdapter.itemCount == 0
 	}
 }

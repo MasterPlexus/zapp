@@ -8,6 +8,7 @@ import de.christinecoenen.code.zapp.models.collections.ShowCollection
 import de.christinecoenen.code.zapp.repositories.ShowCollectionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class SeriesViewModel(
 	private val showCollectionRepository: ShowCollectionRepository
@@ -42,10 +43,9 @@ class SeriesViewModel(
 	 */
 	fun markAllAsWatched(collection: ShowCollection) {
 		viewModelScope.launch {
-			_markResult.value = CollectionMarkResult(
-				CollectionMarkResult.Action.WATCHED,
+			_markResult.value = mark(CollectionMarkResult.Action.WATCHED) {
 				showCollectionRepository.markAllAsWatched(collection)
-			)
+			}
 		}
 	}
 
@@ -54,10 +54,24 @@ class SeriesViewModel(
 	 */
 	fun markAllAsUnwatched(collection: ShowCollection) {
 		viewModelScope.launch {
-			_markResult.value = CollectionMarkResult(
-				CollectionMarkResult.Action.UNWATCHED,
+			_markResult.value = mark(CollectionMarkResult.Action.UNWATCHED) {
 				showCollectionRepository.markAllAsUnwatched(collection)
-			)
+			}
+		}
+	}
+
+	/**
+	 * Runs the given action and makes sure that an unexpected error does not kill the app.
+	 */
+	private suspend fun mark(
+		action: CollectionMarkResult.Action,
+		block: suspend () -> Int,
+	): CollectionMarkResult {
+		return try {
+			CollectionMarkResult(action, block())
+		} catch (e: Exception) {
+			Timber.e(e, "Could not mark all shows of the collection")
+			CollectionMarkResult(action, 0, failed = true)
 		}
 	}
 }

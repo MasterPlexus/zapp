@@ -4,11 +4,10 @@ import de.christinecoenen.code.zapp.app.mediathek.api.IMediathekApiService
 import de.christinecoenen.code.zapp.app.mediathek.api.request.QueryRequest
 import de.christinecoenen.code.zapp.app.settings.repository.SettingsRepository
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
-import de.christinecoenen.code.zapp.models.collections.excludedSearchTerms
 import de.christinecoenen.code.zapp.models.collections.isExcluded
-import de.christinecoenen.code.zapp.models.collections.matches
 import de.christinecoenen.code.zapp.models.shows.MediathekShow
 import de.christinecoenen.code.zapp.persistence.Database
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -49,28 +48,36 @@ class ShowCollectionRepository(
 	}
 
 	private val refreshTrigger = MutableStateFlow(0)
-	private val refreshScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	private val refreshScope = CoroutineScope(
+		SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+			Timber.e(throwable, "Error while refreshing collection counters")
+		}
+	)
 	private val refreshMutex = Mutex()
 
 	/**
-	 * Number of shows that are shown for a collection and how many of them are watched.
-	 */
-	private data class Counts(val total: Int, val watched: Int)
-
-	/**
-	 * Result of processing all shows of a collection.
+	 * Result of a search for all shows of a collection.
 	 *
-	 * @param changedCount Number of shows that have been changed by the action.
-	 * @param visibleCount Number of shows that are shown for the collection (excluded shows
-	 *   are not counted).
-	 * @param isComplete Whether the whole mediathek result set has been processed. False if
-	 *   the configured limit or a network error stopped the run.
+	 * @param visibleApiIds Api ids of the shows that belong to the collection. Excluded shows
+	 *   are not included.
+	 * @param changedCount Number of shows that have been changed by an action.
+	 * @param isComplete Whether the whole mediathek result set has been processed.
+	 * @param reachedLimit Whether the run was stopped by the configured limit of shows that
+	 *   should be processed. The found shows are still used in that case.
 	 */
-	private data class UpdateResult(
+	private data class Enumeration(
+		val visibleApiIds: List<String>,
 		val changedCount: Int,
-		val visibleCount: Int,
 		val isComplete: Boolean,
-	)
+		val reachedLimit: Boolean,
+	) {
+		/**
+		 * Whether the shows of the collection can be derived from this enumeration. False if a
+		 * network error stopped the run - in that case the previous state is kept.
+		 */
+		val isUsable: Boolean
+			get() = isComplete || reachedLimit
+	}
 
 	/**
 	 * A collection that contains shows which have not been seen before.
@@ -103,8 +110,12 @@ class ShowCollectionRepository(
 		}
 
 		refreshScope.launch {
-			refreshMutex.withLock {
-				collections.forEach { refreshCount(it) }
+			try {
+				refreshMutex.withLock {
+					collections.forEach { refreshCount(it) }
+				}
+			} catch (e: Exception) {
+				Timber.e(e, "Could not refresh collection counters")
 			}
 		}
 	}
@@ -193,14 +204,14 @@ class ShowCollectionRepository(
 	 * @return The number of shows that have been marked as watched.
 	 */
 	suspend fun markAllAsWatched(collection: ShowCollection): Int = withContext(Dispatchers.IO) {
-		val result = updateAllFoundShows(collection) { show ->
+		val enumeration = enumerateVisibleShows(collection) { show ->
 			mediathekRepository.insertOrUpdateShow(show)
 			mediathekRepository.markAsPlayedIfUnwatched(show.apiId) > 0
 		}
 
-		updateCountsAfterAction(collection, result)
+		updateCountsAfterAction(collection, enumeration)
 
-		result.changedCount
+		enumeration.changedCount
 	}
 
 	/**
@@ -213,14 +224,14 @@ class ShowCollectionRepository(
 	 * @return The number of shows that have been marked as unwatched.
 	 */
 	suspend fun markAllAsUnwatched(collection: ShowCollection): Int = withContext(Dispatchers.IO) {
-		val result = updateAllFoundShows(collection) { show ->
+		val enumeration = enumerateVisibleShows(collection) { show ->
 			// shows that are not stored locally cannot be watched
 			mediathekRepository.resetPlaybackPositionIfPlayed(show.apiId) > 0
 		}
 
-		updateCountsAfterAction(collection, result)
+		updateCountsAfterAction(collection, enumeration)
 
-		result.changedCount
+		enumeration.changedCount
 	}
 
 	/**
@@ -321,18 +332,20 @@ class ShowCollectionRepository(
 	 * Pages through all mediathek results of the given collection and calls [update] for
 	 * every show. Excluded shows and duplicates are skipped.
 	 *
-	 * @return The number of shows for which [update] returned true.
+	 * @return The api ids of all shows that belong to the collection and the result of the
+	 *   update calls.
 	 */
-	private suspend fun updateAllFoundShows(
+	private suspend fun enumerateVisibleShows(
 		collection: ShowCollection,
-		update: suspend (MediathekShow) -> Boolean,
-	): UpdateResult {
+		update: suspend (MediathekShow) -> Boolean = { false },
+	): Enumeration {
 		val handledApiIds = mutableSetOf<String>()
+		val visibleApiIds = mutableListOf<String>()
 		val maxProcessedShows = settingsRepository.maxProcessedShows
 		var changedCount = 0
-		var visibleCount = 0
 		var offset = 0
 		var isComplete = false
+		var hasError = false
 
 		while (offset < maxProcessedShows) {
 			val page = try {
@@ -343,6 +356,7 @@ class ShowCollectionRepository(
 				)
 			} catch (e: Exception) {
 				Timber.e(e, "Could not load shows of collection ${collection.id} (offset $offset)")
+				hasError = true
 				break
 			}
 
@@ -356,7 +370,7 @@ class ShowCollectionRepository(
 					continue
 				}
 
-				visibleCount++
+				visibleApiIds += show.apiId
 
 				try {
 					if (update(show)) {
@@ -376,169 +390,93 @@ class ShowCollectionRepository(
 			offset += page.size
 		}
 
-		return UpdateResult(changedCount, visibleCount, isComplete)
+		return Enumeration(
+			visibleApiIds = visibleApiIds,
+			changedCount = changedCount,
+			isComplete = isComplete,
+			reachedLimit = !isComplete && !hasError
+		)
 	}
 
 	/**
-	 * Updates the cached counters of a collection after "mark all as watched/unwatched".
-	 * If all shows have been processed, the result of that run is used directly instead of
-	 * the cached total, so the counters are correct immediately.
+	 * Stores which shows belong to the collection and updates its counters. This is called
+	 * after "mark all as watched/unwatched", where all shows are known anyway.
 	 */
 	private suspend fun updateCountsAfterAction(
 		collection: ShowCollection,
-		result: UpdateResult,
+		enumeration: Enumeration,
 	) {
-		if (!result.isComplete) {
-			// only partial knowledge - fall back to a regular refresh
-			database.showCollectionDao().getFromIdSync(collection.id)?.let { refreshCount(it) }
+		if (!enumeration.isUsable) {
+			// network problem - keep the previous state
 			return
 		}
 
-		val watchedCount = countWatchedShowsOf(collection)
-		val unwatchedCount = (result.visibleCount - watchedCount).coerceAtLeast(0)
-
-		if (result.visibleCount != collection.totalCount ||
-			unwatchedCount != collection.unwatchedCount
-		) {
-			database.showCollectionDao().updateCounts(
-				collection.id,
-				result.visibleCount,
-				unwatchedCount,
-				DateTime.now()
-			)
-		}
+		storeEntries(collection.id, enumeration.visibleApiIds)
+		updateCounters(collection, markAsRefreshed = true)
 	}
 
 	/**
-	 * Recalculates the unwatched/total counters of a collection. The total number of
-	 * found shows is only fetched from the mediatheks when the cached value is stale,
-	 * the number of watched shows is always recalculated.
+	 * Recalculates the counters of a collection. The shows that belong to the collection are
+	 * only searched again when the stored state is stale - otherwise the counters are read
+	 * from the stored shows, so watching a show updates them immediately.
 	 */
 	private suspend fun refreshCount(collection: ShowCollection) {
 		val storedUpdatedAt = collection.countUpdatedAt
 		val isStale = storedUpdatedAt == null ||
 			storedUpdatedAt.plusHours(COUNT_MAX_AGE_HOURS).isBeforeNow()
 
-		val counts = if (isStale) {
-			val fetchedCounts = try {
-				determineCounts(collection)
-			} catch (e: Exception) {
-				Timber.e(e, "Could not determine counts of collection ${collection.id}")
-				null
+		if (isStale) {
+			val enumeration = enumerateVisibleShows(collection)
+
+			if (!enumeration.isUsable) {
+				// network problem - keep the previous state and retry later
+				return
 			}
 
-			fetchedCounts ?: return
-		} else {
-			Counts(collection.totalCount, countWatchedShowsOf(collection))
+			storeEntries(collection.id, enumeration.visibleApiIds)
 		}
 
-		val unwatchedCount = (counts.total - counts.watched).coerceAtLeast(0)
+		updateCounters(collection, markAsRefreshed = isStale)
+	}
 
-		if (isStale ||
-			counts.total != collection.totalCount ||
-			unwatchedCount != collection.unwatchedCount
+	/**
+	 * Stores which shows belong to the collection.
+	 */
+	private suspend fun storeEntries(collectionId: Int, apiIds: Collection<String>) {
+		database.showCollectionEntryDao().replaceForCollection(collectionId, apiIds)
+	}
+
+	/**
+	 * Reads the counters of the collection from the stored shows and saves them if they
+	 * changed.
+	 *
+	 * @param markAsRefreshed Whether the mediathek has just been searched for the collection
+	 *   and the stored state is up to date again.
+	 */
+	private suspend fun updateCounters(collection: ShowCollection, markAsRefreshed: Boolean) {
+		val entryDao = database.showCollectionEntryDao()
+		val totalCount = entryDao.countForCollection(collection.id)
+		val unwatchedCount = entryDao.countUnwatchedForCollection(collection.id)
+
+		if (!markAsRefreshed &&
+			totalCount == collection.totalCount &&
+			unwatchedCount == collection.unwatchedCount
 		) {
-			database.showCollectionDao().updateCounts(
+			return
+		}
+
+		val dao = database.showCollectionDao()
+		if (markAsRefreshed) {
+			dao.updateCountersAndRefreshDate(
 				collection.id,
-				counts.total,
+				totalCount,
 				unwatchedCount,
 				DateTime.now()
 			)
+		} else {
+			dao.updateCounters(collection.id, totalCount, unwatchedCount)
 		}
 	}
-
-	/**
-	 * Determines the total number of shows that are actually shown for the collection and
-	 * how many of them are already watched.
-	 *
-	 * Without exclusion terms the total can be taken from the mediathek answer. With
-	 * exclusion terms the results have to be counted by paging through them, because the
-	 * mediathek API cannot exclude anything - excluded shows must not be counted as unseen.
-	 */
-	private suspend fun determineCounts(collection: ShowCollection): Counts? {
-		if (collection.excludedSearchTerms.isNotEmpty()) {
-			return countVisibleShows(collection)
-		}
-
-		val totalCount = searchMediathekTotalCount(collection.searchQuery) ?: return null
-		return Counts(totalCount, countWatchedShowsOf(collection))
-	}
-
-	/**
-	 * Number of locally stored shows that are watched and belong to the collection.
-	 */
-	private suspend fun countWatchedShowsOf(collection: ShowCollection): Int =
-		database
-			.mediathekShowDao()
-			.getWatchedShows()
-			.count { persistedShow -> collection.matches(persistedShow.mediathekShow) }
-
-	/**
-	 * Pages through all mediathek results and counts the shows that are shown (i.e. not
-	 * excluded) and how many of them are already watched.
-	 */
-	private suspend fun countVisibleShows(collection: ShowCollection): Counts {
-		val watchedApiIds = database
-			.mediathekShowDao()
-			.getWatchedShows()
-			.map { persistedShow -> persistedShow.mediathekShow.apiId }
-			.toSet()
-
-		val handledApiIds = mutableSetOf<String>()
-		val maxProcessedShows = settingsRepository.maxProcessedShows
-		var totalCount = 0
-		var watchedCount = 0
-		var offset = 0
-
-		while (offset < maxProcessedShows) {
-			val page = try {
-				searchMediathek(
-					searchQuery = collection.searchQuery,
-					size = PAGE_SIZE,
-					offset = offset
-				)
-			} catch (e: Exception) {
-				Timber.e(e, "Could not load shows of collection ${collection.id} (offset $offset)")
-				break
-			}
-
-			if (page.isEmpty()) {
-				break
-			}
-
-			for (show in page) {
-				if (!handledApiIds.add(show.apiId) || collection.isExcluded(show)) {
-					continue
-				}
-
-				totalCount++
-				if (show.apiId in watchedApiIds) {
-					watchedCount++
-				}
-			}
-
-			if (page.size < PAGE_SIZE) {
-				break
-			}
-
-			offset += page.size
-		}
-
-		return Counts(totalCount, watchedCount)
-	}
-
-	private suspend fun searchMediathekTotalCount(searchQuery: String): Int? =
-		mediathekApi
-			.listShows(
-				QueryRequest().apply {
-					size = 1
-					offset = 0
-					setQueryString(searchQuery)
-				}
-			)
-			.result
-			?.queryInfo
-			?.totalResults
 
 	private suspend fun searchMediathek(
 		searchQuery: String,

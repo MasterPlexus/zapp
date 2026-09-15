@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.joda.time.DateTime
+import timber.log.Timber
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SeriesDetailViewModel(
@@ -95,25 +96,38 @@ class SeriesDetailViewModel(
 
 	fun markAllAsWatched() {
 		viewModelScope.launch {
-			val collection = showCollectionRepository.getFromId(collectionId).firstOrNull()
-				?: return@launch
+			_markResult.value = mark(CollectionMarkResult.Action.WATCHED) {
+				val collection = showCollectionRepository.getFromId(collectionId).firstOrNull()
+					?: return@mark 0
 
-			_markResult.value = CollectionMarkResult(
-				CollectionMarkResult.Action.WATCHED,
 				showCollectionRepository.markAllAsWatched(collection)
-			)
+			}
 		}
 	}
 
 	fun markAllAsUnwatched() {
 		viewModelScope.launch {
-			val collection = showCollectionRepository.getFromId(collectionId).firstOrNull()
-				?: return@launch
+			_markResult.value = mark(CollectionMarkResult.Action.UNWATCHED) {
+				val collection = showCollectionRepository.getFromId(collectionId).firstOrNull()
+					?: return@mark 0
 
-			_markResult.value = CollectionMarkResult(
-				CollectionMarkResult.Action.UNWATCHED,
 				showCollectionRepository.markAllAsUnwatched(collection)
-			)
+			}
+		}
+	}
+
+	/**
+	 * Runs the given action and makes sure that an unexpected error does not kill the app.
+	 */
+	private suspend fun mark(
+		action: CollectionMarkResult.Action,
+		block: suspend () -> Int,
+	): CollectionMarkResult {
+		return try {
+			CollectionMarkResult(action, block())
+		} catch (e: Exception) {
+			Timber.e(e, "Could not mark all shows of the collection")
+			CollectionMarkResult(action, 0, failed = true)
 		}
 	}
 }

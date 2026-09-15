@@ -36,8 +36,11 @@ interface ShowCollectionDao {
 	@Update
 	suspend fun update(collection: ShowCollection)
 
+	@Query("UPDATE ShowCollection SET totalCount=:totalCount, unwatchedCount=:unwatchedCount WHERE id=:id")
+	suspend fun updateCounters(id: Int, totalCount: Int, unwatchedCount: Int)
+
 	@Query("UPDATE ShowCollection SET totalCount=:totalCount, unwatchedCount=:unwatchedCount, countUpdatedAt=:updatedAt WHERE id=:id")
-	suspend fun updateCounts(
+	suspend fun updateCountersAndRefreshDate(
 		id: Int,
 		totalCount: Int,
 		unwatchedCount: Int,

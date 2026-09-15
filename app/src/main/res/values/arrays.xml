@@ -94,12 +94,14 @@
 		<item>@string/activity_main_tab_live</item>
 		<item>@string/activity_main_tab_mediathek</item>
 		<item>@string/activity_main_tab_personal</item>
+		<item>@string/activity_main_tab_series</item>
 	</string-array>
 
 	<string-array name="available_tabs_values">
 		<item>live</item>
 		<item>mediathek</item>
 		<item>personal</item>
+		<item>series</item>
 	</string-array>
 
 	<string-array name="available_tabs_names_tv">

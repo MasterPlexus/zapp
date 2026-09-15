@@ -116,6 +116,7 @@
 	<string name="fragment_series_mark_all_watched_none">No shows marked as watched</string>
 	<string name="fragment_series_mark_all_unwatched_success">Marked %1$d shows as unwatched</string>
 	<string name="fragment_series_mark_all_unwatched_none">No shows marked as unwatched</string>
+	<string name="fragment_series_mark_all_failed">Marking failed. Please try again later.</string>
 	<string name="error_series_missing_name">Please enter a name</string>
 	<string name="error_series_missing_query">Please enter a search term</string>
 

@@ -9,12 +9,18 @@ import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteException
 import androidx.sqlite.db.SupportSQLiteDatabase
 import de.christinecoenen.code.zapp.models.collections.ShowCollection
+import de.christinecoenen.code.zapp.models.collections.ShowCollectionEntry
 import de.christinecoenen.code.zapp.models.search.SearchQuery
 import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 
 @Database(
-	entities = [PersistedMediathekShow::class, SearchQuery::class, ShowCollection::class],
-	version = 9,
+	entities = [
+		PersistedMediathekShow::class,
+		SearchQuery::class,
+		ShowCollection::class,
+		ShowCollectionEntry::class
+	],
+	version = 10,
 	autoMigrations = [],
 	exportSchema = true
 )
@@ -22,6 +28,17 @@ import de.christinecoenen.code.zapp.models.shows.PersistedMediathekShow
 abstract class Database : RoomDatabase() {
 
 	companion object {
+
+		/**
+		 * Store which shows belong to a collection, so that the counters can be calculated
+		 * exactly. The cached counters are invalidated so they are rebuilt for all collections.
+		 */
+		private val MIGRATION_9_10 = object : Migration(9, 10) {
+			override fun migrate(db: SupportSQLiteDatabase) {
+				db.execSQL("CREATE TABLE IF NOT EXISTS `ShowCollectionEntry` (`collectionId` INTEGER NOT NULL, `apiId` TEXT NOT NULL, PRIMARY KEY(`collectionId`, `apiId`))")
+				db.execSQL("UPDATE ShowCollection SET countUpdatedAt = NULL")
+			}
+		}
 
 		/**
 		 * Invalidate the cached collection counters. Excluded shows are subtracted from the
@@ -141,7 +158,8 @@ abstract class Database : RoomDatabase() {
 					MIGRATION_5_6,
 					MIGRATION_6_7,
 					MIGRATION_7_8,
-					MIGRATION_8_9
+					MIGRATION_8_9,
+					MIGRATION_9_10
 				)
 				.build()
 		}
@@ -153,5 +171,7 @@ abstract class Database : RoomDatabase() {
 	abstract fun searchDao(): SearchDao
 
 	abstract fun showCollectionDao(): ShowCollectionDao
+
+	abstract fun showCollectionEntryDao(): ShowCollectionEntryDao
 
 }
